@@ -30,3 +30,4 @@ Route::middleware('auth:api')->group(function () {
 
 Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset');
 Route::post('password/reset', [PasswordResetController::class, 'reset']);
+Route::middleware('auth:api')->post('refresh-token', [AuthController::class, 'refreshToken']);
