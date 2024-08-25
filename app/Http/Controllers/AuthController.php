@@ -64,4 +64,15 @@ public function login(Request $request)
     return response()->json(compact('token'));
 }
 
+public function refreshToken(Request $request)
+{
+    try {
+        $newToken = JWTAuth::refresh(JWTAuth::getToken());
+
+        return response()->json(['token' => $newToken], 200);
+    } catch (JWTException $e) {
+        return response()->json(['error' => 'Could not refresh token'], 500);
+    }
+}
+
 }
