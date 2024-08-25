@@ -28,5 +28,5 @@ Route::middleware('auth:api')->group(function () {
         ->name('verification.resend');
 });
 
-Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail']);
+Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset');
 Route::post('password/reset', [PasswordResetController::class, 'reset']);
