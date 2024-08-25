@@ -19,10 +19,10 @@
 </head>
 <body>
     <div class="container text-center">
-        <img src="{{ asset('plantpulse-logo.png') }}" alt="PlantPulse Logo" class="logo mb-4">
+        <img src="{{ asset('PlantPulse_logo.png') }}" alt="PlantPulse Logo" class="logo mb-4">
         <h1 class="display-4 text-success">Email Verified!</h1>
         <p class="lead">Thank you for verifying your email. Your account is now active.</p>
-        <a href="http://localhost:3000/home" class="btn btn-primary">Go to Dashboard</a>
+        <a href="http://localhost:3000/home" class="btn btn-success">Go to Dashboard</a>
     </div>
 </body>
 </html>
