@@ -20,9 +20,10 @@ use App\Http\Controllers\VerificationController;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
+Route::get('email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+    ->name('verification.verify');
+
 Route::middleware('auth:api')->group(function () {
-    Route::get('email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
-        ->name('verification.verify');
     Route::post('email/resend', [VerificationController::class, 'resend'])
         ->name('verification.resend');
 });
