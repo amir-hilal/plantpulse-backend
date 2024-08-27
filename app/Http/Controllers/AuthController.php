@@ -61,12 +61,15 @@ public function login(Request $request)
         return response()->json(['error' => 'Could not create token'], 500);
     }
 
-    return response()->json(compact('token'),200);
+    return response()->json([
+        'token' => $token,
+        'user' => $user
+    ], 200);
 }
 
 public function refreshToken(Request $request)
 {
-    try {
+     try {
         $newToken = JWTAuth::refresh(JWTAuth::getToken());
 
         return response()->json(['token' => $newToken], 200);
@@ -75,4 +78,9 @@ public function refreshToken(Request $request)
     }
 }
 
+public function me(Request $request)
+    {
+        // Return the authenticated user's data
+        return response()->json($request->user());
+    }
 }

@@ -19,15 +19,15 @@ use App\Http\Controllers\VerificationController;
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
-
+Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset');
+Route::post('password/reset', [PasswordResetController::class, 'reset']);
 Route::get('email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
     ->name('verification.verify');
 
 Route::middleware('auth:api')->group(function () {
+    Route::post('refresh-token', [AuthController::class, 'refreshToken']);
+    Route::get('/me', [AuthController::class, 'me']);
     Route::post('email/resend', [VerificationController::class, 'resend'])
         ->name('verification.resend');
 });
 
-Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset');
-Route::post('password/reset', [PasswordResetController::class, 'reset']);
-Route::middleware('auth:api')->post('refresh-token', [AuthController::class, 'refreshToken']);
