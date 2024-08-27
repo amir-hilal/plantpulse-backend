@@ -37,7 +37,7 @@ class AuthController extends Controller
     // Send email verification notification
     $user->sendEmailVerificationNotification();
 
-    return response()->json(['message' => 'Please check your email to verify your account.']);
+    return response()->json(['message' => 'Please check your email to verify your account.'],201);
 }
 
 
@@ -61,7 +61,7 @@ public function login(Request $request)
         return response()->json(['error' => 'Could not create token'], 500);
     }
 
-    return response()->json(compact('token'));
+    return response()->json(compact('token'),200);
 }
 
 public function refreshToken(Request $request)
