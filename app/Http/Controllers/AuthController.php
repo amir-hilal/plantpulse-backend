@@ -57,20 +57,26 @@ class AuthController extends Controller
                 return response()->json(['error' => 'Your email address is not verified.'], 403);
             }
 
+            // Generate a refresh token
+            $refreshToken = JWTAuth::fromUser($user);
+
+            // Set refresh token as an HTTP-only cookie
+            return response()
+                ->json([
+                    'token' => $token,
+                    'user' => $user,
+                ], 200)
+                ->cookie('refresh_token', $refreshToken, 1440, '/', null, false, true); // 1440 = 1 day
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
         }
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user
-        ], 200);
     }
 
     public function refreshToken(Request $request)
     {
         try {
-            $newToken = JWTAuth::refresh(JWTAuth::getToken());
+            $refreshToken = $request->cookie('refresh_token');
+            $newToken = JWTAuth::setToken($refreshToken)->refresh();
             return response()->json(['token' => $newToken], 200);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not refresh token'], 500);
