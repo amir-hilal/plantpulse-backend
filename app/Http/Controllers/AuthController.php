@@ -76,8 +76,22 @@ class AuthController extends Controller
     {
         try {
             $refreshToken = $request->cookie('refresh_token');
-            $newToken = JWTAuth::setToken($refreshToken)->refresh();
-            return response()->json(['token' => $newToken], 200);
+
+            if (!$refreshToken) {
+                return response()->json(['error' => 'Refresh token not found'], 400);
+            }
+
+            $newToken = JWTAuth::refresh($refreshToken);
+
+            // Optionally set a new refresh token as well
+            $newRefreshToken = JWTAuth::fromUser($request->user());
+
+            return response()->json(['token' => $newToken], 200)
+                ->cookie('refresh_token', $newRefreshToken, 1440, null, null, false, true); 
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return response()->json(['error' => 'Refresh token has expired'], 401);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['error' => 'Invalid refresh token'], 401);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not refresh token'], 500);
         }
@@ -89,10 +103,10 @@ class AuthController extends Controller
     }
 
     public function logout(Request $request)
-{
-    JWTAuth::invalidate(JWTAuth::getToken());
-    return response()->json(['message' => 'Successfully logged out'])
-        ->cookie('refresh_token', '', -1); // Clear the cookie
-}
+    {
+        JWTAuth::invalidate(JWTAuth::getToken());
+        return response()->json(['message' => 'Successfully logged out'])
+            ->cookie('refresh_token', '', -1);
+    }
 
 }
