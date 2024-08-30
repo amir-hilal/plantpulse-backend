@@ -31,3 +31,4 @@ Route::middleware('auth:api')->group(function () {
         ->name('verification.resend');
 });
 
+Route::get('/users/{username}', [UserController::class, 'show']);
