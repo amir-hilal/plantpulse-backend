@@ -29,6 +29,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('email/resend', [VerificationController::class, 'resend'])
         ->name('verification.resend');
+    Route::put('/users/{username}', [UserController::class, 'update']);
 });
 
 Route::get('/users/{username}', [UserController::class, 'show']);
