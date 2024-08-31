@@ -57,56 +57,19 @@ class AuthController extends Controller
                 return response()->json(['error' => 'Your email address is not verified.'], 403);
             }
 
-            // Generate a refresh token
-            $refreshToken = JWTAuth::fromUser($user);
-
-            // Set refresh token as an HTTP-only cookie
             return response()
                 ->json([
                     'token' => $token,
                     'user' => $user,
-                ], 200)
-                ->cookie('refresh_token', $refreshToken, 1440, '/', null, false, true); // 1440 = 1 day
+                ], 200);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
-        }
-    }
-
-    public function refreshToken(Request $request)
-    {
-        try {
-            $refreshToken = $request->cookie('refresh_token');
-
-            if (!$refreshToken) {
-                return response()->json(['error' => 'Refresh token not found'], 400);
-            }
-
-            $newToken = JWTAuth::refresh($refreshToken);
-
-            // Optionally set a new refresh token as well
-            $newRefreshToken = JWTAuth::fromUser($request->user());
-
-            return response()->json(['token' => $newToken], 200)
-                ->cookie('refresh_token', $newRefreshToken, 1440, null, null, false, true); 
-        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-            return response()->json(['error' => 'Refresh token has expired'], 401);
-        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-            return response()->json(['error' => 'Invalid refresh token'], 401);
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Could not refresh token'], 500);
         }
     }
 
     public function me(Request $request)
     {
         return response()->json($request->user());
-    }
-
-    public function logout(Request $request)
-    {
-        JWTAuth::invalidate(JWTAuth::getToken());
-        return response()->json(['message' => 'Successfully logged out'])
-            ->cookie('refresh_token', '', -1);
     }
 
 }

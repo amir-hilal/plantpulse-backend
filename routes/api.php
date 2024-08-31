@@ -23,10 +23,8 @@ Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEma
 Route::post('password/reset', [PasswordResetController::class, 'reset']);
 Route::get('email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
     ->name('verification.verify');
-Route::post('refresh-token', [AuthController::class, 'refreshToken']);
 
 Route::middleware('auth:api')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('email/resend', [VerificationController::class, 'resend'])
         ->name('verification.resend');

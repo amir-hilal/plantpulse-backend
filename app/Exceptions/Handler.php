@@ -31,14 +31,9 @@ class Handler extends ExceptionHandler
     protected function unauthenticated($request, AuthenticationException $exception)
     {
         if ($request->expectsJson()) {
-            if ($request->is('api/refresh-token')) {
-                return response()->json(['message' => 'Session expired. Please log in again.'], 401);
-            }
-
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
-
+    
         return view('verification-error');
     }
-
 }
