@@ -33,7 +33,7 @@ class UserController extends Controller
             'phone_number' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
             'birthday' => 'nullable|date',
-            'gender' => 'nullable|string|in:Male,Female,Other',
+            'gender' => 'nullable|string|in:male,female,other',
             'about' => 'nullable|string|max:1000',
         ]);
 

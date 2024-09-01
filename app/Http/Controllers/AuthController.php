@@ -33,11 +33,13 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+        
+        $token = JWTAuth::fromUser($user);
 
         // Send email verification notification
         $user->sendEmailVerificationNotification();
 
-        return response()->json(['message' => 'Please check your email to verify your account.'], 201);
+        return response()->json(['message' => 'Please check your email to verify your account.', 'user'=>$user, 'token'=> $token], 201);
     }
 
 
