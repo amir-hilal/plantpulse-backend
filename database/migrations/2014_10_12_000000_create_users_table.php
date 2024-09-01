@@ -14,7 +14,7 @@ class CreateUsersTable extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->string('username')->unique();
-            $table->string('profile_photo_url')->nullable();
+            $table->string('profile_photo_url')->default('https://plantpulse.s3.me-central-1.amazonaws.com/profile/empty-profile.png');
             $table->string('cover_photo_url')->nullable();
             $table->text('about')->nullable();
             $table->string('phone_number', 20)->nullable();

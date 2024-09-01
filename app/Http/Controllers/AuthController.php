@@ -25,6 +25,8 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
+        $default_profile_picture_url = 'https://plantpulse.s3.me-central-1.amazonaws.com/profile/empty-profile.png';
+
 
         $user = User::create([
             'first_name' => $request->first_name,
@@ -32,8 +34,9 @@ class AuthController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'profile_picture_url' => $default_profile_picture_url
         ]);
-        
+
         $token = JWTAuth::fromUser($user);
 
         // Send email verification notification
