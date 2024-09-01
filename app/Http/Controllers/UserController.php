@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\Storage;
 class UserController extends Controller
 {
     public function show($username)
@@ -52,5 +52,23 @@ class UserController extends Controller
         ]);
 
         return response()->json(['message' => 'Profile updated successfully', 'user' => $user], 200);
+    }
+
+
+    public function uploadProfileImage(Request $request)
+    {
+        $this->validate($request, [
+            'file' => 'required|image|max:2048', // Limit image size to 2MB
+        ]);
+
+        $file = $request->file('file');
+        $path = $file->store('profile', 's3');
+
+        // Ensure the file is publicly accessible
+        Storage::disk('s3')->setVisibility($path, 'public');
+
+        $url = Storage::disk('s3')->url($path);
+
+        return response()->json(['url' => $url], 200);
     }
 }
