@@ -37,6 +37,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/friends', [FriendController::class, 'listFriends']);
     Route::post('/friends/request', [FriendController::class, 'sendRequest']);
     Route::post('/friends/accept/{id}', [FriendController::class, 'acceptRequest']);
+    Route::post('/friends/decline/{id}', [FriendController::class, 'declineRequest']);
+
 
 
 });
