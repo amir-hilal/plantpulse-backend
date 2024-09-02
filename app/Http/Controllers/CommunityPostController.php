@@ -79,9 +79,23 @@ class CommunityPostController extends Controller
         $user = User::where('username', $username)->firstOrFail();
 
         $posts = CommunityPost::where('user_id', $user->id)
+            ->with(['user:id,first_name,last_name,profile_photo_url'])
             ->orderBy('created_at', 'desc')
-            ->paginate(5); // Fetch 5 posts at a time
+            ->paginate(5);
+
+        $posts->transform(function ($post) {
+            return [
+                'id' => $post->id,
+                'title' => $post->title,
+                'content' => $post->content,
+                'image_url' => $post->image_url,
+                'created_at' => $post->created_at,
+                'author_name' => $post->user->first_name . ' ' . $post->user->last_name,
+                'author_profile_photo_url' => $post->user->profile_photo_url,
+            ];
+        });
 
         return response()->json($posts);
+
     }
 }
