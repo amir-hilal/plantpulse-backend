@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CommunityPostController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -30,6 +31,7 @@ Route::middleware('auth:api')->group(function () {
         ->name('/verification.resend');
     Route::put('/users/{username}', [UserController::class, 'update']);
     Route::post('/upload/profile-photo', [UserController::class, 'uploadProfilePhoto']);
+    Route::post('/posts', [CommunityPostController::class, 'createPost']);
 });
 
 Route::get('/users/{username}', [UserController::class, 'show']);
