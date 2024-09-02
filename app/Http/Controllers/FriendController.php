@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Friend;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class FriendController extends Controller
@@ -45,7 +46,7 @@ class FriendController extends Controller
     {
         $friend = Friend::where(function ($query) use ($id) {
             $query->where('user_id', Auth::id())
-                  ->orWhere('friend_id', Auth::id());
+                ->orWhere('friend_id', Auth::id());
         })->where('id', $id)->firstOrFail();
 
         $friend->delete();
@@ -58,7 +59,7 @@ class FriendController extends Controller
         $friends = Friend::where('status', 'accepted')
             ->where(function ($query) {
                 $query->where('user_id', Auth::id())
-                      ->orWhere('friend_id', Auth::id());
+                    ->orWhere('friend_id', Auth::id());
             })
             ->with(['user', 'friend'])
             ->get();
