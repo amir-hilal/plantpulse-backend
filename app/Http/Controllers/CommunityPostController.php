@@ -65,4 +65,12 @@ class CommunityPostController extends Controller
             'post' => $post
         ], 201);
     }
+
+    public function fetchAllPosts(Request $request)
+    {
+        $posts = CommunityPost::orderBy('created_at', 'desc')
+            ->paginate(5); // Fetch 5 posts at a time
+
+        return response()->json($posts);
+    }
 }
