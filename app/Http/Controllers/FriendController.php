@@ -65,4 +65,14 @@ class FriendController extends Controller
 
         return response()->json(['friends' => $friends], 200);
     }
+
+    public function listRequests()
+    {
+        $requests = Friend::where('friend_id', Auth::id())
+            ->where('status', 'pending')
+            ->with('user')
+            ->get();
+
+        return response()->json(['requests' => $requests], 200);
+    }
 }
