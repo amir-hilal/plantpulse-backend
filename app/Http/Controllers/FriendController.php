@@ -22,4 +22,13 @@ class FriendController extends Controller
 
         return response()->json(['message' => 'Friend request sent.', 'friend' => $friend], 201);
     }
+
+    public function acceptRequest($id)
+    {
+        $friendRequest = Friend::where('friend_id', Auth::id())->where('id', $id)->firstOrFail();
+
+        $friendRequest->update(['status' => 'accepted']);
+
+        return response()->json(['message' => 'Friend request accepted.', 'friend' => $friendRequest], 200);
+    }
 }
