@@ -35,6 +35,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/posts', [CommunityPostController::class, 'fetchAllPosts']);
     Route::get('/posts/{username}', [CommunityPostController::class, 'fetchPostsByUsername']);
     Route::get('/friends', [FriendController::class, 'listFriends']);
+    Route::post('/friends/request', [FriendController::class, 'sendRequest']);
 });
 
 Route::get('/users/{username}', [UserController::class, 'show']);
