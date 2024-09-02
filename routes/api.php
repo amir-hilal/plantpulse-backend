@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CommunityPostController;
+use App\Http\Controllers\FriendController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -34,6 +34,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/posts', [CommunityPostController::class, 'createPost']);
     Route::get('/posts', [CommunityPostController::class, 'fetchAllPosts']);
     Route::get('/posts/{username}', [CommunityPostController::class, 'fetchPostsByUsername']);
+    Route::get('/friends', [FriendController::class, 'listFriends']);
 });
 
 Route::get('/users/{username}', [UserController::class, 'show']);
