@@ -40,4 +40,16 @@ class FriendController extends Controller
 
         return response()->json(['message' => 'Friend request declined.', 'friend' => $friendRequest], 200);
     }
+
+    public function removeFriend($id)
+    {
+        $friend = Friend::where(function ($query) use ($id) {
+            $query->where('user_id', Auth::id())
+                  ->orWhere('friend_id', Auth::id());
+        })->where('id', $id)->firstOrFail();
+
+        $friend->delete();
+
+        return response()->json(['message' => 'Friend removed.', 'friend' => $friend], 200);
+    }
 }
