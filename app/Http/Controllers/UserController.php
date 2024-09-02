@@ -6,7 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
+use Aws\S3\S3Client;
+use Aws\Exception\AwsException;
 class UserController extends Controller
 {
     public function show($username)
@@ -35,6 +36,7 @@ class UserController extends Controller
             'birthday' => 'nullable|date',
             'gender' => 'nullable|string|in:male,female,other',
             'about' => 'nullable|string|max:1000',
+            'profile_photo_url' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -49,26 +51,65 @@ class UserController extends Controller
             'birthday' => $request->birthday,
             'gender' => $request->gender,
             'about' => $request->about,
+            'profile_photo_url' => $request->profile_photo_url
         ]);
 
         return response()->json(['message' => 'Profile updated successfully', 'user' => $user], 200);
     }
 
 
-    public function uploadProfileImage(Request $request)
+    public function uploadProfilePhoto(Request $request)
     {
-        $this->validate($request, [
-            'file' => 'required|image|max:2048', // Limit image size to 2MB
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $file = $request->file('file');
-        $path = $file->store('profile', 's3');
+        $imageName = time() . '.' . $request->file->extension();
+        $filePath = $request->file('file')->getPathname();
+        $bucketName = env('AWS_BUCKET');
+        $key = 'profile/' . $imageName;
 
-        // Ensure the file is publicly accessible
-        Storage::disk('s3')->setVisibility($path, 'public');
+        \Log::error('file: ' . $request->file('file')->getClientOriginalName());
 
-        $url = Storage::disk('s3')->url($path);
+        $s3 = new S3Client([
+            'version' => 'latest',
+            'region' => env('AWS_DEFAULT_REGION'),
+            'credentials' => [
+                'key' => env('AWS_ACCESS_KEY_ID'),
+                'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            ],
+            'http' => [
+                'verify' => false,
+                // 'verify' => storage_path('certs/pypad-instance-key.pem'),
+                // we should look back in to this to make it true after creating ssl
+            ],
+        ]);
 
-        return response()->json(['url' => $url], 200);
+        try {
+            $result = $s3->putObject([
+                'Bucket' => $bucketName,
+                'Key' => $key,
+                'SourceFile' => $filePath,
+                'ACL' => 'public-read',
+            ]);
+
+            $imageUrl = $result['ObjectURL'];
+
+            \Log::info('Successfully uploaded image to S3. URL: ' . $imageUrl);
+
+            return response()->json([
+                'message' => 'Image uploaded successfully',
+                'url' => $imageUrl
+            ], 200);
+
+        } catch (AwsException $e) {
+            \Log::error('S3 Upload Error: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => 'An error occurred while uploading the image: ' . $e->getMessage()
+            ], 500);
+        }
     }
+
+
 }
