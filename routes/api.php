@@ -32,6 +32,7 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/users/{username}', [UserController::class, 'update']);
     Route::post('/upload/profile-photo', [UserController::class, 'uploadProfilePhoto']);
     Route::post('/posts', [CommunityPostController::class, 'createPost']);
+    Route::get('/posts', [CommunityPostController::class, 'fetchAllPosts']);
 });
 
 Route::get('/users/{username}', [UserController::class, 'show']);
