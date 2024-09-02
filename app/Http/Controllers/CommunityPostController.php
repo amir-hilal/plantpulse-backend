@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
-
+use App\Models\User;
 class CommunityPostController extends Controller
 {
     public function createPost(Request $request)
@@ -69,6 +69,17 @@ class CommunityPostController extends Controller
     public function fetchAllPosts(Request $request)
     {
         $posts = CommunityPost::orderBy('created_at', 'desc')
+            ->paginate(5); // Fetch 5 posts at a time
+
+        return response()->json($posts);
+    }
+
+    public function fetchPostsByUsername(Request $request, $username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+
+        $posts = CommunityPost::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
             ->paginate(5); // Fetch 5 posts at a time
 
         return response()->json($posts);
