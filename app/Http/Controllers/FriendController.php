@@ -52,4 +52,17 @@ class FriendController extends Controller
 
         return response()->json(['message' => 'Friend removed.', 'friend' => $friend], 200);
     }
+
+    public function listFriends()
+    {
+        $friends = Friend::where('status', 'accepted')
+            ->where(function ($query) {
+                $query->where('user_id', Auth::id())
+                      ->orWhere('friend_id', Auth::id());
+            })
+            ->with(['user', 'friend'])
+            ->get();
+
+        return response()->json(['friends' => $friends], 200);
+    }
 }
