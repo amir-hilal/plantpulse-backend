@@ -41,6 +41,7 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/friends/remove/{id}', [FriendController::class, 'removeFriend']);
     Route::get('/friend-requests', [FriendController::class, 'listRequests']);
     Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/search', [UserController::class, 'search']); // Search users
 
 
 
