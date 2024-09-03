@@ -110,56 +110,116 @@ class UserController extends Controller
             ], 500);
         }
     }
-
     public function index(Request $request)
     {
-        $perPage = 10;
-        $friendsFirst = User::whereHas('friends', function ($query) {
-            $query->where('status', 'accepted');
-        })
-        ->paginate($perPage, ['*'], 'friends_page');
+        $perPage = 20;
+        $userId = auth()->id();
 
-        $nonFriends = User::whereDoesntHave('friends', function ($query) {
-            $query->where('status', 'accepted');
-        })
-        ->paginate($perPage, ['*'], 'non_friends_page');
+        $users = User::where('id', '<>', $userId)
+            ->with([
+                'friends' => function ($query) use ($userId) {
+                    $query->where('friend_id', $userId)
+                        ->orWhere('user_id', $userId);
+                }
+            ])
+            ->paginate($perPage);
+
+        $formattedUsers = array_map(function ($user) use ($userId) {
+            $friendship = $user->friends->first();
+            $relationshipStatus = 'not_connected';
+
+            if ($friendship) {
+                if ($friendship->status === 'accepted') {
+                    $relationshipStatus = 'connected';
+                } elseif ($friendship->status === 'pending' && $friendship->user_id === $userId) {
+                    $relationshipStatus = 'request_sent';
+                } elseif ($friendship->status === 'pending') {
+                    $relationshipStatus = 'request_received';
+                }
+            }
+
+            return [
+                'id' => $user->id,
+                'email' => $user->email,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'username' => $user->username,
+                'profile_photo_url' => $user->profile_photo_url,
+                'cover_photo_url' => $user->cover_photo_url,
+                'about' => $user->about,
+                'phone_number' => $user->phone_number,
+                'gender' => $user->gender,
+                'birthday' => $user->birthday,
+                'address' => $user->address,
+                'email_verified_at' => $user->email_verified_at,
+                'relationship_status' => $relationshipStatus,
+            ];
+        }, $users->items());
 
         return response()->json([
-            'friends' => $friendsFirst->items(),
-            'nonFriends' => $nonFriends->items(),
-            'nextPageUrlFriends' => $friendsFirst->nextPageUrl(),
-            'nextPageUrlNonFriends' => $nonFriends->nextPageUrl(),
+            'users' => $formattedUsers,
+            'nextPageUrl' => $users->nextPageUrl(),
         ]);
     }
 
     public function search(Request $request)
     {
-        $searchQuery = $request->query('search');
-        $perPage = 10;
+        $searchQuery = $request->query('query');
+        $perPage = 20;
+        $userId = auth()->id();
 
-        $friends = User::whereHas('friends', function ($query) {
-            $query->where('status', 'accepted');
-        })
-        ->where('first_name', 'like', '%' . $searchQuery . '%')
-        ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
-        ->orWhere('username', 'like', '%' . $searchQuery . '%')
-        ->paginate($perPage, ['*'], 'friends_page');
+        $users = User::where('id', '<>', $userId)
+            ->where(function ($query) use ($searchQuery) {
+                $query->where('first_name', 'like', '%' . $searchQuery . '%')
+                    ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
+                    ->orWhere('username', 'like', '%' . $searchQuery . '%');
+            })
+            ->with([
+                'friends' => function ($query) use ($userId) {
+                    $query->where('friend_id', $userId)
+                        ->orWhere('user_id', $userId);
+                }
+            ])
+            ->paginate($perPage);
 
-        $nonFriends = User::whereDoesntHave('friends', function ($query) {
-            $query->where('status', 'accepted');
-        })
-        ->where('first_name', 'like', '%' . $searchQuery . '%')
-        ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
-        ->orWhere('username', 'like', '%' . $searchQuery . '%')
-        ->paginate($perPage, ['*'], 'non_friends_page');
+        $formattedUsers = array_map(function ($user) use ($userId) {
+            $friendship = $user->friends->first();
+            $relationshipStatus = 'not_connected';
+
+            if ($friendship) {
+                if ($friendship->status === 'accepted') {
+                    $relationshipStatus = 'connected';
+                } elseif ($friendship->status === 'pending' && $friendship->user_id === $userId) {
+                    $relationshipStatus = 'request_sent';
+                } elseif ($friendship->status === 'pending') {
+                    $relationshipStatus = 'request_received';
+                }
+            }
+
+            return [
+                'id' => $user->id,
+                'email' => $user->email,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'username' => $user->username,
+                'profile_photo_url' => $user->profile_photo_url,
+                'cover_photo_url' => $user->cover_photo_url,
+                'about' => $user->about,
+                'phone_number' => $user->phone_number,
+                'gender' => $user->gender,
+                'birthday' => $user->birthday,
+                'address' => $user->address,
+                'email_verified_at' => $user->email_verified_at,
+                'relationship_status' => $relationshipStatus,
+            ];
+        }, $users->items());
 
         return response()->json([
-            'friends' => $friends->items(),
-            'nonFriends' => $nonFriends->items(),
-            'nextPageUrlFriends' => $friends->nextPageUrl(),
-            'nextPageUrlNonFriends' => $nonFriends->nextPageUrl(),
+            'users' => $formattedUsers,
+            'nextPageUrl' => $users->nextPageUrl(),
         ]);
     }
+
 
 
 }
