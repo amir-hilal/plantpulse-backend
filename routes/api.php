@@ -40,7 +40,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/friends/decline/{id}', [FriendController::class, 'declineRequest']);
     Route::delete('/friends/remove/{id}', [FriendController::class, 'removeFriend']);
     Route::get('/friend-requests', [FriendController::class, 'listRequests']);
-
+    Route::get('/users', [UserController::class, 'index']);
 
 
 
