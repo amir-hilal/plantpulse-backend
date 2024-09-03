@@ -140,14 +140,16 @@ class UserController extends Controller
         $friends = User::whereHas('friends', function ($query) {
             $query->where('status', 'accepted');
         })
-        ->where('name', 'like', '%' . $searchQuery . '%')
+        ->where('first_name', 'like', '%' . $searchQuery . '%')
+        ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
         ->orWhere('username', 'like', '%' . $searchQuery . '%')
         ->paginate($perPage, ['*'], 'friends_page');
 
         $nonFriends = User::whereDoesntHave('friends', function ($query) {
             $query->where('status', 'accepted');
         })
-        ->where('name', 'like', '%' . $searchQuery . '%')
+        ->where('first_name', 'like', '%' . $searchQuery . '%')
+        ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
         ->orWhere('username', 'like', '%' . $searchQuery . '%')
         ->paginate($perPage, ['*'], 'non_friends_page');
 
