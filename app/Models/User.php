@@ -22,8 +22,20 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
-        'first_name', 'last_name', 'username', 'email', 'password', 'profile_photo_url', 'cover_photo_url',
-        'about', 'phone_number', 'gender', 'birthday', 'address', 'google_id', 'role'
+        'first_name',
+        'last_name',
+        'username',
+        'email',
+        'password',
+        'profile_photo_url',
+        'cover_photo_url',
+        'about',
+        'phone_number',
+        'gender',
+        'birthday',
+        'address',
+        'google_id',
+        'role'
     ];
     /**
      * The attributes that should be hidden for serialization.
@@ -31,7 +43,13 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      * @var array<int, string>
      */
     protected $hidden = [
-        'password', 'remember_token', 'deleted_at','role','google_id', 'created_at','updated_at'
+        'password',
+        'remember_token',
+        'deleted_at',
+        'role',
+        'google_id',
+        'created_at',
+        'updated_at'
     ];
 
     /**
@@ -57,15 +75,28 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function friends()
     {
         return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id')
-                    ->withPivot('status')
-                    ->wherePivot('status', 'accepted');
+            ->withPivot('status')
+            ->wherePivot('status', 'accepted');
     }
 
-   
+
     public function friendRequests()
     {
         return $this->belongsToMany(User::class, 'friends', 'friend_id', 'user_id')
-                    ->withPivot('status')
-                    ->wherePivot('status', 'pending');
+            ->withPivot('status')
+            ->wherePivot('status', 'pending');
     }
+
+    public function allFriendships()
+    {
+        $sentFriendships = $this->friends()->select('friends.*')->toBase();
+        $receivedFriendships = $this->friendRequests()->select('friends.*')->toBase();
+
+        return $this->newQuery()
+            ->fromSub($sentFriendships->union($receivedFriendships), 'friendships')
+            ->get();
+    }
+
+
+
 }
