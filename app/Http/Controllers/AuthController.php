@@ -42,13 +42,25 @@ class AuthController extends Controller
         // Send email verification notification
         $user->sendEmailVerificationNotification();
 
-        return response()->json(['message' => 'Please check your email to verify your account.', 'user'=>$user, 'token'=> $token], 201);
+        return response()->json(['message' => 'Please check your email to verify your account.', 'user' => $user, 'token' => $token], 201);
     }
 
 
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $request->validate([
+            'email_or_username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $loginField = $request->input('email_or_username');
+
+        $loginType = filter_var($loginField, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $loginType => $loginField,
+            'password' => $request->input('password'),
+        ];
 
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
