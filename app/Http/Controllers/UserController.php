@@ -111,5 +111,26 @@ class UserController extends Controller
         }
     }
 
+    public function index(Request $request)
+    {
+        $perPage = 10;
+        $friendsFirst = User::whereHas('friends', function ($query) {
+            $query->where('status', 'accepted');
+        })
+        ->paginate($perPage, ['*'], 'friends_page');
+
+        $nonFriends = User::whereDoesntHave('friends', function ($query) {
+            $query->where('status', 'accepted');
+        })
+        ->paginate($perPage, ['*'], 'non_friends_page');
+
+        return response()->json([
+            'friends' => $friendsFirst->items(),
+            'nonFriends' => $nonFriends->items(),
+            'nextPageUrlFriends' => $friendsFirst->nextPageUrl(),
+            'nextPageUrlNonFriends' => $nonFriends->nextPageUrl(),
+        ]);
+    }
+
 
 }
