@@ -111,5 +111,49 @@ class UserController extends Controller
         }
     }
 
+    // In your controller
+public function getUsers(Request $request)
+{
+    $search = $request->input('search');
+    $userId = auth()->id();
+
+    $friends = User::whereHas('friends', function ($query) use ($userId) {
+        $query->where('friend_id', $userId)->where('status', 'accepted');
+    });
+
+    if ($search) {
+        $friends = $friends->where(function ($query) use ($search) {
+            $query->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%");
+        });
+    }
+
+    $friends = $friends->paginate(10);
+
+    $nonFriends = User::where('id', '<>', $userId)
+                      ->whereDoesntHave('friends', function ($query) use ($userId) {
+                          $query->where('friend_id', $userId)->where('status', 'accepted');
+                      });
+
+    if ($search) {
+        $nonFriends = $nonFriends->where(function ($query) use ($search) {
+            $query->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%");
+        });
+    }
+
+    $nonFriends = $nonFriends->paginate(10);
+
+    return response()->json([
+        'friends' => $friends->items(),
+        'nonFriends' => $nonFriends->items(),
+        'nextPageUrlFriends' => $friends->nextPageUrl(),
+        'nextPageUrlNonFriends' => $nonFriends->nextPageUrl()
+    ]);
+}
+
+
 
 }
