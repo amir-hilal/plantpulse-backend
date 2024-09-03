@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Friend;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -18,8 +19,37 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
 
+        $loggedInUserId = auth()->id();
+        $friendshipStatus = 'not_connected'; // Default status
+
+        if ($loggedInUserId === $user->id) {
+            $friendshipStatus = 'owner'; // The profile belongs to the logged-in user
+        } else {
+            $friendship = Friend::where(function ($query) use ($loggedInUserId, $user) {
+                $query->where('user_id', $loggedInUserId)
+                    ->where('friend_id', $user->id)
+                    ->orWhere(function ($query) use ($loggedInUserId, $user) {
+                        $query->where('friend_id', $loggedInUserId)
+                            ->where('user_id', $user->id);
+                    });
+            })->first();
+
+            if ($friendship) {
+                if ($friendship->status === 'accepted') {
+                    $friendshipStatus = 'connected';
+                } elseif ($friendship->status === 'pending' && $friendship->user_id === $loggedInUserId) {
+                    $friendshipStatus = 'request_sent';
+                } elseif ($friendship->status === 'pending') {
+                    $friendshipStatus = 'request_received';
+                }
+            }
+        }
+
+        $user->friendship_status = $friendshipStatus;
+
         return response()->json($user);
     }
+
     public function update(Request $request, $username)
     {
         $user = User::where('username', $username)->firstOrFail();
@@ -126,15 +156,15 @@ class UserController extends Controller
 
         $formattedUsers = array_map(function ($user) use ($userId) {
             $friendship = $user->friends->first();
-            $relationshipStatus = 'not_connected';
+            $isFriend = 'not_connected';
 
             if ($friendship) {
                 if ($friendship->status === 'accepted') {
-                    $relationshipStatus = 'connected';
+                    $isFriend = 'connected';
                 } elseif ($friendship->status === 'pending' && $friendship->user_id === $userId) {
-                    $relationshipStatus = 'request_sent';
+                    $isFriend = 'request_sent';
                 } elseif ($friendship->status === 'pending') {
-                    $relationshipStatus = 'request_received';
+                    $isFriend = 'request_received';
                 }
             }
 
@@ -152,7 +182,7 @@ class UserController extends Controller
                 'birthday' => $user->birthday,
                 'address' => $user->address,
                 'email_verified_at' => $user->email_verified_at,
-                'relationship_status' => $relationshipStatus,
+                'isFriend' => $isFriend,
             ];
         }, $users->items());
 
@@ -184,15 +214,15 @@ class UserController extends Controller
 
         $formattedUsers = array_map(function ($user) use ($userId) {
             $friendship = $user->friends->first();
-            $relationshipStatus = 'not_connected';
+            $isFriend = 'not_connected';
 
             if ($friendship) {
                 if ($friendship->status === 'accepted') {
-                    $relationshipStatus = 'connected';
+                    $isFriend = 'connected';
                 } elseif ($friendship->status === 'pending' && $friendship->user_id === $userId) {
-                    $relationshipStatus = 'request_sent';
+                    $isFriend = 'request_sent';
                 } elseif ($friendship->status === 'pending') {
-                    $relationshipStatus = 'request_received';
+                    $isFriend = 'request_received';
                 }
             }
 
@@ -210,7 +240,7 @@ class UserController extends Controller
                 'birthday' => $user->birthday,
                 'address' => $user->address,
                 'email_verified_at' => $user->email_verified_at,
-                'relationship_status' => $relationshipStatus,
+                'relationship_status' => $isFriend,
             ];
         }, $users->items());
 
