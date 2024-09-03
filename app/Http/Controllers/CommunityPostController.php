@@ -60,9 +60,20 @@ class CommunityPostController extends Controller
             'image_url' => $imageUrl,
         ]);
 
+        $post = CommunityPost::with(['user:id,first_name,last_name,profile_photo_url'])
+                    ->find($post->id);
+
         return response()->json([
             'message' => 'Post created successfully',
-            'post' => $post
+            'post' => [
+                'id' => $post->id,
+                'title' => $post->title,
+                'content' => $post->content,
+                'image_url' => $post->image_url,
+                'created_at' => $post->created_at,
+                'author_name' => $post->user->first_name . ' ' . $post->user->last_name,
+                'author_profile_photo_url' => $post->user->profile_photo_url,
+            ]
         ], 201);
     }
 

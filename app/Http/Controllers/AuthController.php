@@ -69,10 +69,7 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            // Check if the user's email is verified
-            if (!$user->hasVerifiedEmail()) {
-                return response()->json(['error' => 'Your email address is not verified.'], 403);
-            }
+          
 
             return response()
                 ->json([
