@@ -132,5 +132,32 @@ class UserController extends Controller
         ]);
     }
 
+    public function search(Request $request)
+    {
+        $searchQuery = $request->query('search');
+        $perPage = 10;
+
+        $friends = User::whereHas('friends', function ($query) {
+            $query->where('status', 'accepted');
+        })
+        ->where('name', 'like', '%' . $searchQuery . '%')
+        ->orWhere('username', 'like', '%' . $searchQuery . '%')
+        ->paginate($perPage, ['*'], 'friends_page');
+
+        $nonFriends = User::whereDoesntHave('friends', function ($query) {
+            $query->where('status', 'accepted');
+        })
+        ->where('name', 'like', '%' . $searchQuery . '%')
+        ->orWhere('username', 'like', '%' . $searchQuery . '%')
+        ->paginate($perPage, ['*'], 'non_friends_page');
+
+        return response()->json([
+            'friends' => $friends->items(),
+            'nonFriends' => $nonFriends->items(),
+            'nextPageUrlFriends' => $friends->nextPageUrl(),
+            'nextPageUrlNonFriends' => $nonFriends->nextPageUrl(),
+        ]);
+    }
+
 
 }
