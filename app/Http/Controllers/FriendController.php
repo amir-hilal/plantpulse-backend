@@ -115,7 +115,7 @@ class FriendController extends Controller
         $friend = Friend::where(function ($query) use ($id) {
             $query->where('user_id', Auth::id())
                 ->orWhere('friend_id', Auth::id());
-        })->where('user_id', $id)->orWhere('friend_id', $id)->firstOrFail();
+        })->where('id', $id)->firstOrFail();
 
         $friend->delete();
 
