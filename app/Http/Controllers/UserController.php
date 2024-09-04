@@ -45,7 +45,7 @@ class UserController extends Controller
             }
         }
 
-        $user->friendship_status = $friendshipStatus;
+        $user->relationship_status = $friendshipStatus;
 
         return response()->json($user);
     }
@@ -145,28 +145,32 @@ class UserController extends Controller
         $perPage = 20;
         $userId = auth()->id();
 
-        // Fetch users excluding the current user
+        // Fetch users excluding the current user and load friends relationship
         $users = User::where('id', '<>', $userId)
-            ->with([
-                'friends' => function ($query) use ($userId) {
-                    $query->where(function ($q) use ($userId) {
-                        $q->where('friend_id', $userId)->orWhere('user_id', $userId);
-                    });
-                }
-            ])
             ->paginate($perPage);
 
+        // Format users and manually query friendships
         $formattedUsers = $users->map(function ($user) use ($userId) {
-            $friendship = $user->friends->first();
-            $relationship_status = 'not_connected';
+            // Manually query the friendship table
+            $friendship = \DB::table('friends')
+                ->where(function ($query) use ($userId, $user) {
+                    $query->where('user_id', $userId)->where('friend_id', $user->id)
+                        ->orWhere('user_id', $user->id)->where('friend_id', $userId);
+                })
+                ->first();
 
+            $relationship_status = 'not_connected'; // Default status
+
+            // Set the relationship status based on the friendship data
             if ($friendship) {
-                if ($friendship->pivot->status === 'accepted') {
+                if ($friendship->status === 'accepted') {
                     $relationship_status = 'connected';
-                } elseif ($friendship->pivot->status === 'pending' && $friendship->user_id === $userId) {
-                    $relationship_status = 'request_sent';
-                } elseif ($friendship->pivot->status === 'pending') {
-                    $relationship_status = 'request_received';
+                } elseif ($friendship->status === 'pending') {
+                    if ($friendship->user_id === $userId) {
+                        $relationship_status = 'request_sent'; // The logged-in user sent the request
+                    } else {
+                        $relationship_status = 'request_received'; // The logged-in user received the request
+                    }
                 }
             }
 
@@ -184,7 +188,7 @@ class UserController extends Controller
                 'birthday' => $user->birthday,
                 'address' => $user->address,
                 'email_verified_at' => $user->email_verified_at,
-                'relationship_status' => $relationship_status,
+                'relationship_status' => $relationship_status, // Correctly mapped status
             ];
         });
 
@@ -193,6 +197,9 @@ class UserController extends Controller
             'nextPageUrl' => $users->nextPageUrl(),
         ]);
     }
+
+
+
 
     public function search(Request $request)
     {
@@ -207,27 +214,30 @@ class UserController extends Controller
                     ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
                     ->orWhere('username', 'like', '%' . $searchQuery . '%');
             })
-            ->with([
-                'friends' => function ($query) use ($userId) {
-                    $query->where(function ($q) use ($userId) {
-                        $q->where('friend_id', $userId)->orWhere('user_id', $userId);
-                    });
-                }
-            ])
             ->paginate($perPage);
 
+        // Format users and manually query friendships
         $formattedUsers = $users->map(function ($user) use ($userId) {
-            $friendship = $user->friends->first();
-            $relationship_status = 'not_connected';
+            // Manually query the friendship table
+            $friendship = \DB::table('friends')
+                ->where(function ($query) use ($userId, $user) {
+                    $query->where('user_id', $userId)->where('friend_id', $user->id)
+                        ->orWhere('user_id', $user->id)->where('friend_id', $userId);
+                })
+                ->first();
 
+            $relationship_status = 'not_connected'; // Default status
+
+            // Set the relationship status based on the friendship data
             if ($friendship) {
-                \Log::info('friendship_id' . $friendship);
-                if ($friendship->pivot->status === 'accepted') {
+                if ($friendship->status === 'accepted') {
                     $relationship_status = 'connected';
-                } elseif ($friendship->pivot->status === 'pending' && $friendship->user_id === $userId) {
-                    $relationship_status = 'request_sent';
-                } elseif ($friendship->pivot->status === 'pending') {
-                    $relationship_status = 'request_received';
+                } elseif ($friendship->status === 'pending') {
+                    if ($friendship->user_id === $userId) {
+                        $relationship_status = 'request_sent'; // The logged-in user sent the request
+                    } else {
+                        $relationship_status = 'request_received'; // The logged-in user received the request
+                    }
                 }
             }
 
@@ -245,7 +255,7 @@ class UserController extends Controller
                 'birthday' => $user->birthday,
                 'address' => $user->address,
                 'email_verified_at' => $user->email_verified_at,
-                'relationship_status' => $relationship_status,
+                'relationship_status' => $relationship_status, // Correctly mapped status
             ];
         });
 
@@ -254,7 +264,4 @@ class UserController extends Controller
             'nextPageUrl' => $users->nextPageUrl(),
         ]);
     }
-
-
-
 }

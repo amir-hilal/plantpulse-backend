@@ -72,21 +72,32 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return [];
     }
 
+    /**
+     * Friend relationship: it checks both directions of friendships.
+     * This relationship retrieves all friends where the current user is either the sender or receiver.
+     */
     public function friends()
     {
         return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id')
             ->withPivot('status')
-            ->wherePivot('status', 'accepted');
+            ->where(function ($query) {
+                $query->where('friends.user_id', auth()->id())
+                    ->orWhere('friends.friend_id', auth()->id());
+            });
     }
 
-
+    /**
+     * Friend requests received by the user.
+     */
     public function friendRequests()
     {
         return $this->belongsToMany(User::class, 'friends', 'friend_id', 'user_id')
-            ->withPivot('status')
-            ->wherePivot('status', 'pending');
+            ->withPivot('status');
     }
 
+    /**
+     * Fetch all friendships including sent and received friend requests.
+     */
     public function allFriendships()
     {
         $sentFriendships = $this->friends()->select('friends.*')->toBase();
@@ -96,7 +107,4 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             ->fromSub($sentFriendships->union($receivedFriendships), 'friendships')
             ->get();
     }
-
-
-
 }
