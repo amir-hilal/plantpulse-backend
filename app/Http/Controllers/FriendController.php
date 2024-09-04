@@ -124,15 +124,40 @@ class FriendController extends Controller
 
     public function listFriends()
     {
+        $userId = Auth::id();
+
+        // Get the accepted friends where the logged-in user is either user_id or friend_id
         $friends = Friend::where('status', 'accepted')
-            ->where(function ($query) {
-                $query->where('user_id', Auth::id())
-                    ->orWhere('friend_id', Auth::id());
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->orWhere('friend_id', $userId);
             })
-            ->with(['user'])
+            ->with(['user', 'friend'])
             ->get();
 
-        return response()->json(['friends' => $friends], 200);
+        $formattedFriends = $friends->map(function ($friend) use ($userId) {
+            // If the logged-in user is user_id, return the friend_id details, otherwise return user_id details
+            $friendData = $friend->user_id === $userId ? $friend->friend : $friend->user;
+
+            return [
+                'id' => $friendData->id,
+                'email' => $friendData->email,
+                'first_name' => $friendData->first_name,
+                'last_name' => $friendData->last_name,
+                'username' => $friendData->username,
+                'profile_photo_url' => $friendData->profile_photo_url,
+                'cover_photo_url' => $friendData->cover_photo_url,
+                'about' => $friendData->about,
+                'phone_number' => $friendData->phone_number,
+                'gender' => $friendData->gender,
+                'birthday' => $friendData->birthday,
+                'address' => $friendData->address,
+                'email_verified_at' => $friendData->email_verified_at,
+                'relationship_status' => 'connected'
+            ];
+        });
+
+        return response()->json(['friends' => $formattedFriends], 200);
     }
 
     public function listRequests()
