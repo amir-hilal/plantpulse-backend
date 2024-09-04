@@ -158,15 +158,15 @@ class UserController extends Controller
 
         $formattedUsers = $users->map(function ($user) use ($userId) {
             $friendship = $user->friends->first();
-            $isFriend = 'not_connected';
+            $relationship_status = 'not_connected';
 
             if ($friendship) {
-                if ($friendship->status === 'accepted') {
-                    $isFriend = 'connected';
-                } elseif ($friendship->status === 'pending' && $friendship->user_id === $userId) {
-                    $isFriend = 'request_sent';
-                } elseif ($friendship->status === 'pending') {
-                    $isFriend = 'request_received';
+                if ($friendship->pivot->status === 'accepted') {
+                    $relationship_status = 'connected';
+                } elseif ($friendship->pivot->status === 'pending' && $friendship->user_id === $userId) {
+                    $relationship_status = 'request_sent';
+                } elseif ($friendship->pivot->status === 'pending') {
+                    $relationship_status = 'request_received';
                 }
             }
 
@@ -184,7 +184,7 @@ class UserController extends Controller
                 'birthday' => $user->birthday,
                 'address' => $user->address,
                 'email_verified_at' => $user->email_verified_at,
-                'relationship_status' => $isFriend,
+                'relationship_status' => $relationship_status,
             ];
         });
 
@@ -200,6 +200,7 @@ class UserController extends Controller
         $perPage = 20;
         $userId = auth()->id();
 
+        // Fetch users excluding the current user and applying the search filters
         $users = User::where('id', '<>', $userId)
             ->where(function ($query) use ($searchQuery) {
                 $query->where('first_name', 'like', '%' . $searchQuery . '%')
@@ -208,23 +209,25 @@ class UserController extends Controller
             })
             ->with([
                 'friends' => function ($query) use ($userId) {
-                    $query->where('friend_id', $userId)
-                        ->orWhere('user_id', $userId);
+                    $query->where(function ($q) use ($userId) {
+                        $q->where('friend_id', $userId)->orWhere('user_id', $userId);
+                    });
                 }
             ])
             ->paginate($perPage);
 
-        $formattedUsers = array_map(function ($user) use ($userId) {
+        $formattedUsers = $users->map(function ($user) use ($userId) {
             $friendship = $user->friends->first();
-            $isFriend = 'not_connected';
+            $relationship_status = 'not_connected';
 
             if ($friendship) {
-                if ($friendship->status === 'accepted') {
-                    $isFriend = 'connected';
-                } elseif ($friendship->status === 'pending' && $friendship->user_id === $userId) {
-                    $isFriend = 'request_sent';
-                } elseif ($friendship->status === 'pending') {
-                    $isFriend = 'request_received';
+                \Log::info('friendship_id' . $friendship);
+                if ($friendship->pivot->status === 'accepted') {
+                    $relationship_status = 'connected';
+                } elseif ($friendship->pivot->status === 'pending' && $friendship->user_id === $userId) {
+                    $relationship_status = 'request_sent';
+                } elseif ($friendship->pivot->status === 'pending') {
+                    $relationship_status = 'request_received';
                 }
             }
 
@@ -242,9 +245,9 @@ class UserController extends Controller
                 'birthday' => $user->birthday,
                 'address' => $user->address,
                 'email_verified_at' => $user->email_verified_at,
-                'relationship_status' => $isFriend,
+                'relationship_status' => $relationship_status,
             ];
-        }, $users->items());
+        });
 
         return response()->json([
             'users' => $formattedUsers,
