@@ -145,16 +145,18 @@ class UserController extends Controller
         $perPage = 20;
         $userId = auth()->id();
 
+        // Fetch users excluding the current user
         $users = User::where('id', '<>', $userId)
             ->with([
                 'friends' => function ($query) use ($userId) {
-                    $query->where('friend_id', $userId)
-                        ->orWhere('user_id', $userId);
+                    $query->where(function ($q) use ($userId) {
+                        $q->where('friend_id', $userId)->orWhere('user_id', $userId);
+                    });
                 }
             ])
             ->paginate($perPage);
 
-        $formattedUsers = array_map(function ($user) use ($userId) {
+        $formattedUsers = $users->map(function ($user) use ($userId) {
             $friendship = $user->friends->first();
             $isFriend = 'not_connected';
 
@@ -182,9 +184,9 @@ class UserController extends Controller
                 'birthday' => $user->birthday,
                 'address' => $user->address,
                 'email_verified_at' => $user->email_verified_at,
-                'isFriend' => $isFriend,
+                'relationship_status' => $isFriend,
             ];
-        }, $users->items());
+        });
 
         return response()->json([
             'users' => $formattedUsers,
