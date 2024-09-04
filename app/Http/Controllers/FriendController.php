@@ -15,24 +15,47 @@ class FriendController extends Controller
             'friend_id' => 'required|exists:users,id',
         ]);
 
+        $userId = Auth::id();
+        $friendId = $request->friend_id;
+
+        // Check if a request exists in both directions
         $existingRequest = Friend::withTrashed()
-            ->where('user_id', Auth::id())
-            ->where('friend_id', $request->friend_id)
+            ->where(function ($query) use ($userId, $friendId) {
+                $query->where('user_id', $userId)
+                    ->where('friend_id', $friendId);
+            })
+            ->orWhere(function ($query) use ($userId, $friendId) {
+                $query->where('user_id', $friendId)
+                    ->where('friend_id', $userId);
+            })
             ->first();
 
+        // Handle the case where a reverse request is allowed (only if the original was declined)
+        if ($existingRequest && $existingRequest->status === 'declined') {
+            // Allow the reverse request only if it was declined
+            if ($existingRequest->user_id === $friendId && $existingRequest->friend_id === $userId) {
+                // Create a new request in the reverse direction
+                $friend = Friend::create([
+                    'user_id' => $userId,
+                    'friend_id' => $friendId,
+                    'status' => 'pending',
+                ]);
+
+                return response()->json(['message' => 'Friend request sent.', 'friend' => $friend], 201);
+            } else {
+                return response()->json(['message' => 'Friend request already declined. No further requests allowed.'], 400);
+            }
+        }
+
+        // Prevent sending a new request if an existing one is pending or accepted
         if ($existingRequest && $existingRequest->status === 'pending') {
             return response()->json(['message' => 'Friend request already sent and pending.'], 400);
         }
 
-        if ($existingRequest && $existingRequest->trashed()) {
-            // If a request was soft-deleted, we can "resurrect" it instead of creating a new one
-            $existingRequest->restore();
-            $existingRequest->update(['status' => 'pending']);
-
-            return response()->json(['message' => 'Friend request re-sent.', 'friend' => $existingRequest], 201);
+        if ($existingRequest && $existingRequest->status === 'accepted') {
+            return response()->json(['message' => 'Friend request already accepted.'], 400);
         }
 
-        // If no existing request, create a new one
         $friend = Friend::create([
             'user_id' => Auth::id(),
             'friend_id' => $request->friend_id,
@@ -70,7 +93,7 @@ class FriendController extends Controller
 
     public function declineRequest($id)
     {
-        $friendRequest = Friend::where('friend_id', Auth::id())->where('id', $id)->first();
+        $friendRequest = Friend::where('friend_id', Auth::id())->where('user_id', $id)->first();
 
         if (!$friendRequest) {
             return response()->json(['message' => 'Friend request not found or already declined.'], 404);
