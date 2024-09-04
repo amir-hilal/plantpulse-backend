@@ -55,19 +55,29 @@ class FriendController extends Controller
 
     public function acceptRequest($id)
     {
-        $friendRequest = Friend::where('friend_id', Auth::id())->where('user_id', $id)->first();
+        // Find the friend request where the logged-in user is the friend
+        $friendRequest = Friend::where('friend_id', Auth::id())
+            ->where('user_id', $id)
+            ->with('user:id,email,first_name,last_name,username,profile_photo_url,cover_photo_url,about,phone_number,gender,birthday,address,email_verified_at')
+            ->first();
 
         if (!$friendRequest) {
             return response()->json(['message' => 'Friend request not found or already accepted.'], 404);
         }
 
+        // Check if the request is pending
         if ($friendRequest->status === 'pending') {
             $friendRequest->update(['status' => 'accepted']);
-            return response()->json(['message' => 'Friend request accepted.', 'friend' => $friendRequest], 200);
+
+            return response()->json([
+                'message' => 'Friend request accepted.',
+                'friend' => $friendRequest,
+            ], 200);
         }
 
         return response()->json(['message' => 'Friend request is not pending.'], 400);
     }
+
 
     public function declineRequest($id)
     {
@@ -107,7 +117,7 @@ class FriendController extends Controller
                 $query->where('user_id', Auth::id())
                     ->orWhere('friend_id', Auth::id());
             })
-            ->with(['user', 'friend'])
+            ->with(['user'])
             ->get();
 
         return response()->json(['friends' => $friends], 200);
