@@ -15,11 +15,22 @@ class FriendController extends Controller
             'friend_id' => 'required|exists:users,id',
         ]);
 
+        $userId = Auth::id();
+        $friendId = $request->friend_id;
+
+        // Check if a request already exists in both directions
         $existingRequest = Friend::withTrashed()
-            ->where('user_id', Auth::id())
-            ->where('friend_id', $request->friend_id)
+            ->where(function ($query) use ($userId, $friendId) {
+                $query->where('user_id', $userId)
+                    ->where('friend_id', $friendId);
+            })
+            ->orWhere(function ($query) use ($userId, $friendId) {
+                $query->where('user_id', $friendId)
+                    ->where('friend_id', $userId);
+            })
             ->first();
 
+        // If a request exists and is pending, prevent resending
         if ($existingRequest && $existingRequest->status === 'pending') {
             return response()->json(['message' => 'Friend request already sent and pending.'], 400);
         }
