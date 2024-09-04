@@ -115,11 +115,16 @@ class FriendController extends Controller
         $friend = Friend::where(function ($query) use ($id) {
             $query->where('user_id', Auth::id())
                 ->orWhere('friend_id', Auth::id());
-        })->where('id', $id)->firstOrFail();
-
+        })
+            ->where(function ($query) use ($id) {
+                $query->where('user_id', $id)
+                    ->orWhere('friend_id', $id);
+            })
+            ->firstOrFail();
+        $friend->update(['status' => 'declined']);
         $friend->delete();
 
-        return response()->json(['message' => 'Friend removed.', 'friend' => $friend], 200);
+        return response()->json(['message' => 'Friendship declined.', 'friend' => $friend], 200);
     }
 
     public function listFriends()
