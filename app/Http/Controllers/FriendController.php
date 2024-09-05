@@ -127,9 +127,11 @@ class FriendController extends Controller
         return response()->json(['message' => 'Friendship declined.', 'friend' => $friend], 200);
     }
 
-    public function listFriends()
+    public function listFriends($username)
     {
-        $userId = Auth::id();
+        $user = User::where('username', $username)->first();
+
+        $userId = $user->id;
 
         // Get the accepted friends where the logged-in user is either user_id or friend_id
         $friends = Friend::where('status', 'accepted')
