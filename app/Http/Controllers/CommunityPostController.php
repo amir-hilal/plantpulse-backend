@@ -112,19 +112,13 @@ class CommunityPostController extends Controller
 
     public function fetchPostById($id)
     {
-        $post = CommunityPost::with(['user'])->find($id);
+        $post = CommunityPost::with('user')->find($id);
 
         if (!$post) {
             return response()->json(['error' => 'Post not found'], 404);
         }
 
-        // Paginate comments with user data
-        $comments = $post->comments()->with('user')->paginate(5); // 5 comments per page
-
-        return response()->json([
-            'post' => $post,
-            'comments' => $comments
-        ]);
+        return response()->json($post);
     }
 
 }

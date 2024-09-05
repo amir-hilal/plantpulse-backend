@@ -8,7 +8,7 @@ class CommentController extends Controller
 {
     public function fetchComments($postId, Request $request)
     {
-        $perPage = 10; // Number of comments per page
+        $perPage = 10;
         $comments = PostComment::where('post_id', $postId)
             ->with('user')
             ->paginate($perPage);

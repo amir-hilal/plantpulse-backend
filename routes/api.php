@@ -7,6 +7,7 @@ use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CommunityPostController;
 use App\Http\Controllers\FriendController;
+use App\Http\Controllers\CommentController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -34,6 +35,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/posts', [CommunityPostController::class, 'fetchAllPosts']);
     Route::get('/posts/{username}', [CommunityPostController::class, 'fetchPostsByUsername']);
     Route::get('/posts/details/{id}', [CommunityPostController::class, 'fetchPostById']);
+    Route::get('/posts/details/{id}/comments', [CommentController::class, 'fetchComments']);
     Route::get('/friends/{username}', [FriendController::class, 'listFriends']);
     Route::post('/friends/request', [FriendController::class, 'sendRequest']);
     Route::post('/friends/accept/{id}', [FriendController::class, 'acceptRequest']);
