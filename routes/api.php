@@ -33,6 +33,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/posts', [CommunityPostController::class, 'createPost']);
     Route::get('/posts', [CommunityPostController::class, 'fetchAllPosts']);
     Route::get('/posts/{username}', [CommunityPostController::class, 'fetchPostsByUsername']);
+    Route::get('/posts/details/{id}', [CommunityPostController::class, 'fetchPostById']);
     Route::get('/friends/{username}', [FriendController::class, 'listFriends']);
     Route::post('/friends/request', [FriendController::class, 'sendRequest']);
     Route::post('/friends/accept/{id}', [FriendController::class, 'acceptRequest']);

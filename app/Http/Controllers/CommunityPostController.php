@@ -61,7 +61,7 @@ class CommunityPostController extends Controller
         ]);
 
         $post = CommunityPost::with(['user:id,first_name,last_name,profile_photo_url'])
-                    ->find($post->id);
+            ->find($post->id);
 
         return response()->json([
             'message' => 'Post created successfully',
@@ -109,4 +109,22 @@ class CommunityPostController extends Controller
         return response()->json($posts);
 
     }
+
+    public function fetchPostById($id)
+    {
+        $post = CommunityPost::with(['user'])->find($id);
+
+        if (!$post) {
+            return response()->json(['error' => 'Post not found'], 404);
+        }
+
+        // Paginate comments with user data
+        $comments = $post->comments()->with('user')->paginate(5); // 5 comments per page
+
+        return response()->json([
+            'post' => $post,
+            'comments' => $comments
+        ]);
+    }
+
 }
