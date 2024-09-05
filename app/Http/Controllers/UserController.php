@@ -13,6 +13,7 @@ class UserController extends Controller
 {
     public function show($username)
     {
+        // Retrieve the user by username
         $user = User::where('username', $username)->first();
 
         if (!$user) {
@@ -26,21 +27,19 @@ class UserController extends Controller
             $friendshipStatus = 'owner'; // The profile belongs to the logged-in user
         } else {
             $friendship = Friend::where(function ($query) use ($loggedInUserId, $user) {
-                $query->where('user_id', $loggedInUserId)
-                    ->where('friend_id', $user->id)
-                    ->orWhere(function ($query) use ($loggedInUserId, $user) {
-                        $query->where('friend_id', $loggedInUserId)
-                            ->where('user_id', $user->id);
-                    });
+                $query->where('user_id', $loggedInUserId)->where('friend_id', $user->id)
+                    ->orWhere('user_id', $user->id)->where('friend_id', $loggedInUserId);
             })->first();
 
             if ($friendship) {
                 if ($friendship->status === 'accepted') {
                     $friendshipStatus = 'connected';
-                } elseif ($friendship->status === 'pending' && $friendship->user_id === $loggedInUserId) {
-                    $friendshipStatus = 'request_sent';
                 } elseif ($friendship->status === 'pending') {
-                    $friendshipStatus = 'request_received';
+                    if ($friendship->user_id === $loggedInUserId) {
+                        $friendshipStatus = 'request_sent';
+                    } else {
+                        $friendshipStatus = 'request_received';
+                    }
                 }
             }
         }

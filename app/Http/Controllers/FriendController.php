@@ -133,7 +133,6 @@ class FriendController extends Controller
 
         $userId = $user->id;
 
-        // Get the accepted friends where the logged-in user is either user_id or friend_id
         $friends = Friend::where('status', 'accepted')
             ->where(function ($query) use ($userId) {
                 $query->where('user_id', $userId)

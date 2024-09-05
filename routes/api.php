@@ -29,7 +29,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/email/resend', [VerificationController::class, 'resend'])
         ->name('/verification.resend');
-    Route::put('/users/{username}', [UserController::class, 'update']);
     Route::post('/upload/profile-photo', [UserController::class, 'uploadProfilePhoto']);
     Route::post('/posts', [CommunityPostController::class, 'createPost']);
     Route::get('/posts', [CommunityPostController::class, 'fetchAllPosts']);
@@ -41,10 +40,11 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/friends/remove/{id}', [FriendController::class, 'removeFriend']);
     Route::get('/friend-requests', [FriendController::class, 'listRequests']);
     Route::get('/users', [UserController::class, 'index']);
+    Route::put('/users/{username}', [UserController::class, 'update']);
     Route::get('/users/search', [UserController::class, 'search']); // Search users
+    Route::get('/users/{username}', [UserController::class, 'show']);
 
 
 
 });
 
-Route::get('/users/{username}', [UserController::class, 'show']);
