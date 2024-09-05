@@ -37,4 +37,21 @@ class CommentController extends Controller
             'comment' => $comment
         ], 201);
     }
+
+    public function destroy($id)
+    {
+        $comment = PostComment::find($id);
+
+        if (!$comment) {
+            return response()->json(['error' => 'Comment not found'], 404);
+        }
+
+        if (auth()->id() !== $comment->user_id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $comment->delete();
+
+        return response()->json(['message' => 'Comment deleted successfully', 'id' => $id]);
+    }
 }
