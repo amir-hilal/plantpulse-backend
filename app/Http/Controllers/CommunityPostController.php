@@ -102,6 +102,8 @@ class CommunityPostController extends Controller
                 return $friend->user_id === $userId ? $friend->friend_id : $friend->user_id;
             });
 
+        $friendIds[] = $userId;
+        
         // Fetch posts created by friends, including the author's information
         $posts = CommunityPost::whereIn('user_id', $friendIds)
             ->with(['user:id,first_name,last_name,profile_photo_url']) // Include author's details
