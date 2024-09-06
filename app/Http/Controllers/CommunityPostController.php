@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 use App\Models\User;
+use App\Models\Friend;
 class CommunityPostController extends Controller
 {
     public function createPost(Request $request)
@@ -86,19 +87,31 @@ class CommunityPostController extends Controller
     }
 
     public function fetchFriendsPosts(Request $request)
-{
-    $user = Auth::user();
+    {
+        $userId = Auth::id();
 
-    // Fetch friends' posts
-    $friendIds = $user->friends()->where('status', 'accepted')->pluck('friend_id');
+        // Get all friends where the logged-in user is either user_id or friend_id, and the status is 'accepted'
+        $friendIds = Friend::where('status', 'accepted')
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->orWhere('friend_id', $userId);
+            })
+            ->get()
+            ->map(function ($friend) use ($userId) {
+                // Get the friend ID (the other user in the relationship)
+                return $friend->user_id === $userId ? $friend->friend_id : $friend->user_id;
+            });
 
-    $posts = CommunityPost::whereIn('user_id', $friendIds)
-        ->with(['user:id,first_name,last_name,profile_photo_url'])
-        ->orderBy('created_at', 'desc')
-        ->paginate(5); // Pagination
+        // Fetch the posts created by the friends, order by creation date
+        $posts = CommunityPost::whereIn('user_id', $friendIds)
+            ->with(['user:id,first_name,last_name,profile_photo_url'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(5); // Paginate to return 5 posts at a time
 
-    return response()->json($posts);
-}
+        return response()->json($posts);
+    }
+
+
 
 
     public function fetchPostsByUsername(Request $request, $username)
