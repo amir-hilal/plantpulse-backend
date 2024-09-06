@@ -38,6 +38,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/posts/details/{id}/comments', [CommentController::class, 'fetchComments']);
     Route::post('/posts/details/{id}/comments', [CommentController::class, 'addComment']);
     Route::delete('/posts/comments/{id}', [CommentController::class, 'destroy']);
+    Route::get('/posts/friends', [CommunityPostController::class, 'fetchFriendsPosts']);
 
     Route::get('/friends/{username}', [FriendController::class, 'listFriends']);
     Route::post('/friends/request', [FriendController::class, 'sendRequest']);
