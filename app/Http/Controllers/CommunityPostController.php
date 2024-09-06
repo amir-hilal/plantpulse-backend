@@ -85,6 +85,22 @@ class CommunityPostController extends Controller
         return response()->json($posts);
     }
 
+    public function fetchFriendsPosts(Request $request)
+{
+    $user = Auth::user();
+
+    // Fetch friends' posts
+    $friendIds = $user->friends()->where('status', 'accepted')->pluck('friend_id');
+
+    $posts = CommunityPost::whereIn('user_id', $friendIds)
+        ->with(['user:id,first_name,last_name,profile_photo_url'])
+        ->orderBy('created_at', 'desc')
+        ->paginate(5); // Pagination
+
+    return response()->json($posts);
+}
+
+
     public function fetchPostsByUsername(Request $request, $username)
     {
         $user = User::where('username', $username)->firstOrFail();
