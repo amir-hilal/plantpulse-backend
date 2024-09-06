@@ -90,7 +90,7 @@ class CommunityPostController extends Controller
     {
         $userId = Auth::id();
 
-        // Get all friends where the logged-in user is either user_id or friend_id, and the status is 'accepted'
+        // Get all friend ids where the logged-in user is either user_id or friend_id, and the status is 'accepted'
         $friendIds = Friend::where('status', 'accepted')
             ->where(function ($query) use ($userId) {
                 $query->where('user_id', $userId)
@@ -102,17 +102,27 @@ class CommunityPostController extends Controller
                 return $friend->user_id === $userId ? $friend->friend_id : $friend->user_id;
             });
 
-        // Fetch the posts created by the friends, order by creation date
+        // Fetch posts created by friends, including the author's information
         $posts = CommunityPost::whereIn('user_id', $friendIds)
-            ->with(['user:id,first_name,last_name,profile_photo_url'])
+            ->with(['user:id,first_name,last_name,profile_photo_url']) // Include author's details
             ->orderBy('created_at', 'desc')
-            ->paginate(5); // Paginate to return 5 posts at a time
+            ->paginate(5); // Fetch 5 posts at a time for pagination
+
+        // Transform the post data to include the required fields for the frontend
+        $posts->getCollection()->transform(function ($post) {
+            return [
+                'id' => $post->id,
+                'title' => $post->title,
+                'content' => $post->content,
+                'image_url' => $post->image_url,
+                'created_at' => $post->created_at,
+                'author_name' => $post->user->first_name . ' ' . $post->user->last_name,
+                'author_profile_photo_url' => $post->user->profile_photo_url,
+            ];
+        });
 
         return response()->json($posts);
     }
-
-
-
 
     public function fetchPostsByUsername(Request $request, $username)
     {
