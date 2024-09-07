@@ -48,14 +48,15 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/accept/{id}', [FriendController::class, 'acceptRequest']);
         Route::post('/decline/{id}', [FriendController::class, 'declineRequest']);
         Route::delete('/remove/{id}', [FriendController::class, 'removeFriend']);
-        Route::get('/requests', [FriendController::class, 'listRequests']);
     });
+
+    Route::get('/friend-requests', [FriendController::class, 'listRequests']);
 
     // Group routes by users
     Route::prefix('users')->group(function () {
         Route::put('/{username}', [UserController::class, 'update']);
-        Route::get('/', [UserController::class, 'index']);
-        Route::get('/search', [UserController::class, 'search']);
-        Route::get('/{username}', [UserController::class, 'show']);
+        Route::get('/all', [UserController::class, 'index']);
+        Route::get('/all/search', [UserController::class, 'search']);
+        Route::get('/show/{username}', [UserController::class, 'show']);
     });
 });
