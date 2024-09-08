@@ -12,11 +12,12 @@ return new class extends Migration {
     {
         Schema::create('gardens', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Owner of the garden
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->text('location')->nullable(); // Optional field
-            $table->timestamps(); // Created at and updated at
-            $table->softDeletes(); // For soft deleting gardens
+            $table->string('garden_image_url')->nullable();
+            $table->text('location')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 
