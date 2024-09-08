@@ -1,7 +1,7 @@
 <?php
 
 namespace Database\Factories;
-
+use App\Models\Garden;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,9 +20,9 @@ class GardenFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->fake()->name(),
-            'location' => $this->fake()->address(),
-            'image_url' => $this->fake()->imageUrl(400, 400, 'people', true, 'Faker'),
+            'name' => fake()->name(),
+            'location' => fake()->address(),
+            'image_url' => fake()->imageUrl(400, 400, 'people', true, 'Faker'),
             'user_id' => 1,
         ];
     }
