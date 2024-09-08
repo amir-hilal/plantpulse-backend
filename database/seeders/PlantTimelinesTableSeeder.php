@@ -4,7 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
+use App\Models\Plant;
+use App\Models\PlantTimeline;
 class PlantTimelinesTableSeeder extends Seeder
 {
     /**
