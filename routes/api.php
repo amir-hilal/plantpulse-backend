@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\GardenController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
@@ -7,7 +8,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CommunityPostController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\CommentController;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -58,5 +58,13 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/all', [UserController::class, 'index']);
         Route::get('/all/search', [UserController::class, 'search']);
         Route::get('/show/{username}', [UserController::class, 'show']);
+    });
+
+    Route::prefix('garden')->group(function () {
+        Route::get('/', [GardenController::class, 'index']);
+        Route::post('/', [GardenController::class, 'store']);
+        Route::get('/{id}', [GardenController::class, 'show']);
+        Route::put('/{id}', [GardenController::class, 'update']);
+        Route::delete('/{id}', [GardenController::class, 'destroy']);
     });
 });
