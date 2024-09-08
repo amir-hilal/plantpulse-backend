@@ -9,7 +9,7 @@ class Garden extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['user_id', 'name', 'location'];
+    protected $fillable = ['user_id', 'name', 'image_url', 'location'];
 
     // Relationships
     public function user()

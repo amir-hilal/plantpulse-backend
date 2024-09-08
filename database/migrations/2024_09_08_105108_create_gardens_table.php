@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->string('garden_image_url')->nullable();
+            $table->string('image_url')->nullable();
             $table->text('location')->nullable();
             $table->timestamps();
             $table->softDeletes();
