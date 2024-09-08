@@ -8,6 +8,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CommunityPostController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\PlantController;
+use App\Http\Controllers\PlantTimelineController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -62,9 +64,28 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('garden')->group(function () {
         Route::get('/', [GardenController::class, 'index']);
+        Route::get('/{gardenId}/plants', [PlantController::class, 'index']);
         Route::post('/', [GardenController::class, 'store']);
         Route::get('/{id}', [GardenController::class, 'show']);
         Route::put('/{id}', [GardenController::class, 'update']);
         Route::delete('/{id}', [GardenController::class, 'destroy']);
+    });
+
+    Route::prefix('plants')->group(function () {
+        Route::post('', [PlantController::class, 'store']); // Create a plant
+        Route::get('/{id}', [PlantController::class, 'show']); // Get a single plant
+        Route::put('/{id}', [PlantController::class, 'update']); // Update a plant
+        Route::delete('/{id}', [PlantController::class, 'destroy']); // Delete a plant
+        Route::get('/{plantId}/timelines', [PlantTimelineController::class, 'index']); // Get all timeline entries for a plant
+
+    });
+
+    Route::prefix('timelines')->group(function () {
+
+        // Plant Timeline Routes
+        Route::post('/', [PlantTimelineController::class, 'store']); // Create a timeline entry
+        Route::get('/{id}', [PlantTimelineController::class, 'show']); // Get a single timeline entry
+        Route::put('/{id}', [PlantTimelineController::class, 'update']); // Update a timeline entry
+        Route::delete('/{id}', [PlantTimelineController::class, 'destroy']); // Delete a timeline entry
     });
 });
