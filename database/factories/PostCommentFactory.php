@@ -3,7 +3,8 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-
+use App\Models\CommunityPost;
+use App\Models\User;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PostComment>
  */
@@ -17,8 +18,8 @@ class PostCommentFactory extends Factory
     public function definition(): array
     {
         return [
-            'post_id' => \App\Models\CommunityPost::factory(),
-            'user_id' => \App\Models\User::factory(),
+            'post_id' => CommunityPost::factory(),
+            'user_id' => User::factory(),
             'comment_text' => fake()->paragraph(),
         ];
     }
