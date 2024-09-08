@@ -16,4 +16,9 @@ class Garden extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function plants()
+    {
+        return $this->hasMany(Plant::class);
+    }
 }
