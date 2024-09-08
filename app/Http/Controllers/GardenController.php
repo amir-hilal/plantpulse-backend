@@ -76,7 +76,7 @@ class GardenController extends Controller
         $garden = Garden::where('user_id', Auth::id())->findOrFail($id);
         $garden->delete();
 
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Garden have been deleted successfully.'], 200);
     }
 
     // Upload image to S3
