@@ -1,48 +1,57 @@
 <?php
-
 namespace App\Http\Controllers;
 
+use App\Models\PlantTimeline;
 use Illuminate\Http\Request;
 
 class PlantTimelineController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // Get all timeline entries for a specific plant
+    public function index($plantId)
     {
-        //
+        $timeline = PlantTimeline::where('plant_id', $plantId)->get();
+        return response()->json($timeline);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Store a new timeline entry
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'plant_id' => 'required|exists:plants,id',
+            'description' => 'nullable|string',
+            'image_path' => 'nullable|string', // You can change this later to handle actual file uploads
+        ]);
+
+        $timeline = PlantTimeline::create($validated);
+        return response()->json($timeline, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // Show a single timeline entry
+    public function show($id)
     {
-        //
+        $timeline = PlantTimeline::findOrFail($id);
+        return response()->json($timeline);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    // Update a timeline entry
+    public function update(Request $request, $id)
     {
-        //
+        $timeline = PlantTimeline::findOrFail($id);
+
+        $validated = $request->validate([
+            'description' => 'nullable|string',
+            'image_path' => 'nullable|string',
+        ]);
+
+        $timeline->update($validated);
+        return response()->json($timeline);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    // Delete a timeline entry
+    public function destroy($id)
     {
-        //
+        $timeline = PlantTimeline::findOrFail($id);
+        $timeline->delete();
+        return response()->json(['message' => 'Timeline entry deleted successfully']);
     }
 }
