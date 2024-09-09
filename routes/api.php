@@ -69,6 +69,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{id}', [GardenController::class, 'show']);
         Route::put('/{id}', [GardenController::class, 'update']);
         Route::delete('/{id}', [GardenController::class, 'destroy']);
+        Route::put('/update-image/{id}', [GardenController::class, 'updateImage']);
     });
 
     Route::prefix('plants')->group(function () {
