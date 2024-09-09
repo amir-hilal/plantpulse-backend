@@ -20,8 +20,10 @@ return new class extends Migration {
             $table->date('last_watered')->nullable();
             $table->date('next_time_to_water')->nullable();
             $table->decimal('height', 5, 2)->nullable(); // height in cm
+            $table->string('image_url')->nullable();
             $table->string('health_status')->default('healthy');
             $table->timestamps();
+
         });
     }
 

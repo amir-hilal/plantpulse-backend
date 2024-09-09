@@ -18,6 +18,7 @@ class Plant extends Model
         'next_time_to_water',
         'height',
         'health_status',
+        'image_url',
     ];
 
     // Relationship: a plant belongs to a garden
