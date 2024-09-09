@@ -32,4 +32,10 @@ class Plant extends Model
     {
         return $this->hasMany(PlantTimeline::class);
     }
+
+    public function wateringCount()
+    {
+        return $this->hasMany(WateringEvent::class)->where('is_done', true)->count();
+    }
+
 }
