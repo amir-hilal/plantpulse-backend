@@ -22,20 +22,20 @@ class GardenController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
-            'file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate image
+            // 'file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate image
         ]);
 
         // Handle image upload
-        $imageUrl = null;
-        if ($request->hasFile('file')) {
-            $imageUrl = $this->uploadImageToS3($request->file('file'));
-        }
+        // $imageUrl = null;
+        // if ($request->hasFile('file')) {
+        //     $imageUrl = $this->uploadImageToS3($request->file('file'));
+        // }
 
         $garden = Garden::create([
             'user_id' => Auth::id(),
             'name' => $request->name,
             'location' => $request->location,
-            'image_url' => $imageUrl,
+            // 'image_url' => $imageUrl,
         ]);
 
         return response()->json($garden, 201);
@@ -54,16 +54,16 @@ class GardenController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
-            'file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate image
+            // 'file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate image
         ]);
 
         $garden = Garden::where('user_id', Auth::id())->findOrFail($id);
 
         // Handle image upload
-        if ($request->hasFile('file')) {
-            $imageUrl = $this->uploadImageToS3($request->file('file'));
-            $garden->update(['image_url' => $imageUrl]);
-        }
+        // if ($request->hasFile('file')) {
+        //     $imageUrl = $this->uploadImageToS3($request->file('file'));
+        //     $garden->update(['image_url' => $imageUrl]);
+        // }
 
         $garden->update($request->only('name', 'location'));
 
@@ -77,6 +77,20 @@ class GardenController extends Controller
         $garden->delete();
 
         return response()->json(['message' => 'Garden have been deleted successfully.'], 200);
+    }
+
+    public function updateImage(Request $request, $id)
+    {
+        $request->validate(['file' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048']);
+
+        $garden = Garden::where('user_id', Auth::id())->findOrFail($id);
+
+        // Handle image upload
+        if ($request->hasFile('file')) {
+            $imageUrl = $this->uploadImageToS3($request->file('file'));
+            $garden->update(['image_url' => $imageUrl]);
+        }
+        return response()->json($garden);
     }
 
     // Upload image to S3
