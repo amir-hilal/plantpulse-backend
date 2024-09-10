@@ -10,6 +10,8 @@ use App\Http\Controllers\FriendController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PlantController;
 use App\Http\Controllers\PlantTimelineController;
+use Illuminate\Support\Facades\Http;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -26,6 +28,44 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset');
 Route::post('password/reset', [PasswordResetController::class, 'reset']);
 Route::get('email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
+
+
+Route::get('/weather', function () {
+    $lat = request('lat');
+    $lon = request('lon');
+
+    $apiKey = env('OPENWEATHER_API_KEY');
+    $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric";
+
+    $response = Http::withOptions([
+        'verify' => false
+    ])->get($weatherUrl);
+
+    if ($response->successful()) {
+        return $response->json();
+    }
+
+    return response()->json(['error' => 'Failed to fetch current weather data'], 500);
+});
+
+Route::get('/forecast', function () {
+    $lat = request('lat');
+    $lon = request('lon');
+
+    $apiKey = env('OPENWEATHER_API_KEY');
+    $forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric";
+
+
+    $response = Http::withOptions([
+        'verify' => false
+    ])->get($forecastUrl);
+
+    if ($response->successful()) {
+        return $response->json();
+    }
+
+    return response()->json(['error' => 'Failed to fetch weather forecast data'], 500);
+});
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -89,4 +129,6 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{id}', [PlantTimelineController::class, 'update']); // Update a timeline entry
         Route::delete('/{id}', [PlantTimelineController::class, 'destroy']); // Delete a timeline entry
     });
+
+
 });
