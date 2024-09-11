@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Aws\S3\S3Client;
 use Illuminate\Support\Facades\Log;
 use Aws\Exception\AwsException;
+use Carbon\Carbon;
 
 class PlantController extends Controller
 {
@@ -14,8 +15,17 @@ class PlantController extends Controller
     public function index($gardenId)
     {
         $plants = Plant::where('garden_id', $gardenId)->get();
+
+        $plants->transform(function ($plant) {
+
+            $plant->age_in_days = $plant->getAgeInDaysAttribute();
+            $plant->formatted_age = $plant->getFormattedAgeAttribute();
+            return $plant;
+        });
+
         return response()->json($plants);
     }
+
 
     // Store a new plant
     public function store(Request $request)
@@ -24,23 +34,32 @@ class PlantController extends Controller
             'garden_id' => 'required|exists:gardens,id',
             'name' => 'required|string',
             'category' => 'required|string',
-            'age' => 'required|integer',
+            'age' => 'required|integer', // Age input is now in days
             'important_note' => 'nullable|string',
             'last_watered' => 'nullable|date',
             'next_time_to_water' => 'nullable|date',
             'height' => 'nullable|numeric',
             'health_status' => 'required|string',
-            'description'=> 'nullable|string',
+            'description' => 'nullable|string',
             'file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-
         ]);
+
+        // Calculate planted date based on the provided age (in days)
+        $plantedDate = Carbon::now()->subDays($validated['age']);
+        unset($validated['age']); // Remove age from validated data, we don't need it anymore
+
         $imagePath = '';
         if ($request->hasFile('file')) {
             $imagePath = $this->uploadImageToS3($request->file('file'));
         }
 
+        // Store plant with planted_date
+        $plant = Plant::create(array_merge($validated, [
+            'planted_date' => $plantedDate,
+            'image_url' => $imagePath,
+        ]));
 
-        $plant = Plant::create(array_merge($validated, ['image_url' => $imagePath]));
+        // Create a timeline entry
         PlantTimeline::create([
             'plant_id' => $plant->id,
             'description' => $request->description,
@@ -49,6 +68,7 @@ class PlantController extends Controller
 
         return response()->json($plant, 201);
     }
+
 
     // Show a single plant
     public function show($id)
