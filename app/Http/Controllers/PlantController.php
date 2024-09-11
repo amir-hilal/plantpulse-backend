@@ -2,7 +2,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Plant;
+use App\Models\PlantTimeline;
 use Illuminate\Http\Request;
+use Aws\S3\S3Client;
+use Illuminate\Support\Facades\Log;
+use Aws\Exception\AwsException;
 
 class PlantController extends Controller
 {
@@ -26,9 +30,23 @@ class PlantController extends Controller
             'next_time_to_water' => 'nullable|date',
             'height' => 'nullable|numeric',
             'health_status' => 'required|string',
+            'description'=> 'nullable|string',
+            'file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+
+        ]);
+        $imagePath = '';
+        if ($request->hasFile('file')) {
+            $imagePath = $this->uploadImageToS3($request->file('file'));
+        }
+
+
+        $plant = Plant::create(array_merge($validated, ['image_url' => $imagePath]));
+        PlantTimeline::create([
+            'plant_id' => $plant->id,
+            'description' => $request->description,
+            'image_path' => $imagePath, // Store the image path in the timeline if available
         ]);
 
-        $plant = Plant::create($validated);
         return response()->json($plant, 201);
     }
 
@@ -65,5 +83,39 @@ class PlantController extends Controller
         $plant = Plant::findOrFail($id);
         $plant->delete();
         return response()->json(['message' => 'Plant deleted successfully']);
+    }
+
+    private function uploadImageToS3($file)
+    {
+        $imageName = time() . '.' . $file->extension();
+        $filePath = $file->getPathname();
+        $bucketName = env('AWS_BUCKET');
+        $key = 'plant-images/' . $imageName;
+
+        $s3 = new S3Client([
+            'version' => 'latest',
+            'region' => env('AWS_DEFAULT_REGION'),
+            'credentials' => [
+                'key' => env('AWS_ACCESS_KEY_ID'),
+                'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            ],
+            'http' => [
+                'verify' => false,
+            ],
+        ]);
+
+        try {
+            $result = $s3->putObject([
+                'Bucket' => $bucketName,
+                'Key' => $key,
+                'SourceFile' => $filePath,
+                'ACL' => 'public-read',
+            ]);
+
+            return $result['ObjectURL'];
+        } catch (AwsException $e) {
+            Log::error('S3 Upload Error: ' . $e->getMessage());
+            return null;
+        }
     }
 }

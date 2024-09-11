@@ -26,7 +26,7 @@ class PlantFactory extends Factory
             'image_url' => fake()->imageUrl(400, 400, 'people', true, 'Faker'),
             'next_time_to_water' => $this->faker->date(),
             'height' => $this->faker->randomFloat(2, 10, 150), // height in cm
-            'health_status' => $this->faker->randomElement(['healthy', 'needs attention', 'critical']),
+            'health_status' => $this->faker->randomElement(['Healthy', 'Unhealthy', 'Diseased', 'Recovering']),
         ];
     }
 }

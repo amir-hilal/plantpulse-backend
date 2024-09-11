@@ -16,10 +16,11 @@ return new class extends Migration {
             $table->string('name');
             $table->string('category');
             $table->integer('age'); // in days or weeks
+            $table->text('description')->nullable();
             $table->text('important_note')->nullable();
             $table->date('last_watered')->nullable();
             $table->date('next_time_to_water')->nullable();
-            $table->decimal('height', 5, 2)->nullable(); // height in cm
+            $table->decimal('height', 5, 2); // height in cm
             $table->string('image_url')->nullable();
             $table->string('health_status')->default('healthy');
             $table->timestamps();

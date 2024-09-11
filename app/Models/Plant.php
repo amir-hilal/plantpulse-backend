@@ -17,6 +17,7 @@ class Plant extends Model
         'last_watered',
         'next_time_to_water',
         'height',
+        'description',
         'health_status',
         'image_url',
     ];
