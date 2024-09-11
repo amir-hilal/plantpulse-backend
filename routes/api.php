@@ -107,7 +107,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{gardenId}/plants', [PlantController::class, 'index']);
         Route::post('/', [GardenController::class, 'store']);
         Route::get('/{id}', [GardenController::class, 'show']);
-        Route::put('/{id}', [GardenController::class, 'update']);
+        Route::post('/{id}', [GardenController::class, 'update']);
         Route::delete('/{id}', [GardenController::class, 'destroy']);
         Route::post('/update-image/{id}', [GardenController::class, 'updateImage']);
     });
