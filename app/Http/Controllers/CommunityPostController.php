@@ -165,4 +165,23 @@ class CommunityPostController extends Controller
         return response()->json($post);
     }
 
+    public function deletePost($id)
+{
+    try {
+        $post = CommunityPost::findOrFail($id);
+
+
+        if (auth()->user()->id !== $post->user_id) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $post->delete();
+
+        return response()->json(['message' => 'Post deleted successfully'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Post not found or could not be deleted'], 404);
+    }
+}
+
+
 }
