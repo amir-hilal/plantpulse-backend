@@ -12,19 +12,18 @@ return new class extends Migration {
     {
         Schema::create('plants', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('garden_id')->constrained()->onDelete('cascade'); // links to gardens
+            $table->foreignId('garden_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->string('category');
-            $table->integer('age'); // in days or weeks
-            $table->text('description')->nullable();
-            $table->text('important_note')->nullable();
+            $table->date('planted_date'); // Storing the planted date instead of age
+            $table->string('important_note')->nullable();
             $table->date('last_watered')->nullable();
             $table->date('next_time_to_water')->nullable();
-            $table->decimal('height', 5, 2); // height in cm
+            $table->float('height')->nullable();
+            $table->string('health_status');
+            $table->text('description')->nullable();
             $table->string('image_url')->nullable();
-            $table->string('health_status')->default('healthy');
             $table->timestamps();
-
         });
     }
 
