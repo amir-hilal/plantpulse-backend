@@ -78,6 +78,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/friends/all', [CommunityPostController::class, 'fetchFriendsPosts']);
         Route::get('/{username}', [CommunityPostController::class, 'fetchPostsByUsername']);
         Route::get('/details/{id}', [CommunityPostController::class, 'fetchPostById']);
+        Route::delete('/{id}', [CommunityPostController::class, 'deletePost']);
         Route::get('/details/{id}/comments', [CommentController::class, 'fetchComments']);
         Route::post('/details/{id}/comments', [CommentController::class, 'addComment']);
         Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
