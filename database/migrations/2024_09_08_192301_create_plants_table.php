@@ -23,6 +23,7 @@ return new class extends Migration {
             $table->string('health_status');
             $table->text('description')->nullable();
             $table->string('image_url')->nullable();
+            $table->integer('watering_frequency');
             $table->timestamps();
         });
     }

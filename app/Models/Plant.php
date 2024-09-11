@@ -13,7 +13,7 @@ class Plant extends Model
         'garden_id',
         'name',
         'category',
-        'planted_date', // Use planted_date instead of age
+        'planted_date',
         'important_note',
         'last_watered',
         'next_time_to_water',
@@ -21,6 +21,8 @@ class Plant extends Model
         'description',
         'health_status',
         'image_url',
+        'watering_frequency',
+
     ];
 
     // Calculate the plant's age in days

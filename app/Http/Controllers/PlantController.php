@@ -34,7 +34,7 @@ class PlantController extends Controller
             'garden_id' => 'required|exists:gardens,id',
             'name' => 'required|string',
             'category' => 'required|string',
-            'age' => 'required|integer', // Age input is now in days
+            'age' => 'required|integer',
             'important_note' => 'nullable|string',
             'last_watered' => 'nullable|date',
             'next_time_to_water' => 'nullable|date',
@@ -42,11 +42,12 @@ class PlantController extends Controller
             'health_status' => 'required|string',
             'description' => 'nullable|string',
             'file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'watering_frequency' => 'required|integer|min:1|max:7',
         ]);
 
         // Calculate planted date based on the provided age (in days)
         $plantedDate = Carbon::now()->subDays($validated['age']);
-        unset($validated['age']); // Remove age from validated data, we don't need it anymore
+        unset($validated['age']);
 
         $imagePath = '';
         if ($request->hasFile('file')) {
@@ -63,8 +64,11 @@ class PlantController extends Controller
         PlantTimeline::create([
             'plant_id' => $plant->id,
             'description' => $request->description,
-            'image_path' => $imagePath, // Store the image path in the timeline if available
+            'image_path' => $imagePath,
         ]);
+
+        $plant->age_in_days = $plant->getAgeInDaysAttribute();
+        $plant->formatted_age = $plant->getFormattedAgeAttribute();
 
         return response()->json($plant, 201);
     }
@@ -82,18 +86,31 @@ class PlantController extends Controller
     {
         $plant = Plant::findOrFail($id);
 
+        // Validate the request, remove age and replace important_note with description
         $validated = $request->validate([
             'name' => 'string',
             'category' => 'string',
-            'age' => 'integer',
-            'important_note' => 'nullable|string',
+            'description' => 'nullable|string', // Replace important_note with description
             'last_watered' => 'nullable|date',
             'next_time_to_water' => 'nullable|date',
             'height' => 'nullable|numeric',
             'health_status' => 'string',
+            'watering_frequency' => 'nullable|integer|min:1|max:7',
+
         ]);
 
+        // Update the plant with the validated data
         $plant->update($validated);
+
+        // Optionally, update the plant's timeline with the new description
+        if (!empty($validated['description'])) {
+            PlantTimeline::create([
+                'plant_id' => $plant->id,
+                'description' => $validated['description'],
+                'image_path' => $plant->image_url,
+            ]);
+        }
+
         return response()->json($plant);
     }
 
