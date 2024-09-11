@@ -61,7 +61,7 @@ class CommunityPostController extends Controller
             'image_url' => $imageUrl,
         ]);
 
-        $post = CommunityPost::with(['user:id,first_name,last_name,profile_photo_url'])
+        $post = CommunityPost::with(['user:id,first_name,last_name,profile_photo_url,username'])
             ->find($post->id);
 
         return response()->json([
@@ -73,6 +73,7 @@ class CommunityPostController extends Controller
                 'image_url' => $post->image_url,
                 'created_at' => $post->created_at,
                 'author_name' => $post->user->first_name . ' ' . $post->user->last_name,
+                'author_username' => $post->user->username,
                 'author_profile_photo_url' => $post->user->profile_photo_url,
             ]
         ], 201);
@@ -103,10 +104,10 @@ class CommunityPostController extends Controller
             });
 
         $friendIds[] = $userId;
-        
+
         // Fetch posts created by friends, including the author's information
         $posts = CommunityPost::whereIn('user_id', $friendIds)
-            ->with(['user:id,first_name,last_name,profile_photo_url']) // Include author's details
+            ->with(['user:id,first_name,last_name,profile_photo_url,username']) // Include author's details
             ->orderBy('created_at', 'desc')
             ->paginate(5); // Fetch 5 posts at a time for pagination
 
@@ -119,6 +120,7 @@ class CommunityPostController extends Controller
                 'image_url' => $post->image_url,
                 'created_at' => $post->created_at,
                 'author_name' => $post->user->first_name . ' ' . $post->user->last_name,
+                'author_username' => $post->user->username,
                 'author_profile_photo_url' => $post->user->profile_photo_url,
             ];
         });
@@ -131,7 +133,7 @@ class CommunityPostController extends Controller
         $user = User::where('username', $username)->firstOrFail();
 
         $posts = CommunityPost::where('user_id', $user->id)
-            ->with(['user:id,first_name,last_name,profile_photo_url'])
+            ->with(['user:id,first_name,last_name,profile_photo_url,username'])
             ->orderBy('created_at', 'desc')
             ->paginate(5);
 
@@ -144,6 +146,7 @@ class CommunityPostController extends Controller
                 'created_at' => $post->created_at,
                 'author_name' => $post->user->first_name . ' ' . $post->user->last_name,
                 'author_profile_photo_url' => $post->user->profile_photo_url,
+                'author_username' => $post->user->username,
             ];
         });
 
