@@ -17,14 +17,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-        User::factory(50)->create();
-        Friend::factory(10)->create();
-        CommunityPost::factory(10)->create();
-        PostComment::factory(10)->create();
-        Garden::factory()->count(5)->create([
-            'user_id' => 1
-        ]);
-        $this->call(PlantsTableSeeder::class);
-        $this->call(PlantTimelinesTableSeeder::class);
+        // User::factory(50)->create();
+        // Friend::factory(10)->create();
+        // CommunityPost::factory(10)->create();
+        // PostComment::factory(10)->create();
+        // Garden::factory()->count(5)->create([
+        //     'user_id' => 1
+        // ]);
+        // $this->call(PlantsTableSeeder::class);
+        // $this->call(PlantTimelinesTableSeeder::class);
+        $this->call(TutorialSeeder::class);
+        $this->call(TutorialCommentSeeder::class);
     }
 }
