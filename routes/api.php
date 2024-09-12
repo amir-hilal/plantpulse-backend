@@ -11,7 +11,8 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PlantController;
 use App\Http\Controllers\PlantTimelineController;
 use Illuminate\Support\Facades\Http;
-
+use App\Http\Controllers\TutorialController;
+use App\Http\Controllers\TutorialCommentController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -125,11 +126,22 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('timelines')->group(function () {
 
         // Plant Timeline Routes
-        Route::post('/', [PlantTimelineController::class, 'store']); // Create a timeline entry
-        Route::get('/{id}', [PlantTimelineController::class, 'show']); // Get a single timeline entry
-        Route::put('/{id}', [PlantTimelineController::class, 'update']); // Update a timeline entry
-        Route::delete('/{id}', [PlantTimelineController::class, 'destroy']); // Delete a timeline entry
+        Route::post('/', [PlantTimelineController::class, 'store']);
+        Route::get('/{id}', [PlantTimelineController::class, 'show']);
+        Route::put('/{id}', [PlantTimelineController::class, 'update']);
+        Route::delete('/{id}', [PlantTimelineController::class, 'destroy']);
     });
 
 
+    Route::middleware('admin')->group(function () {
+        Route::post('/tutorials', [TutorialController::class, 'store']);
+        Route::put('/tutorials/{id}', [TutorialController::class, 'update']);
+        Route::delete('/tutorials/{id}', [TutorialController::class, 'destroy']);
+    });
+
+    // General Routes (both users and admins)
+    Route::get('/tutorials', [TutorialController::class, 'index']);
+    Route::get('/tutorials/{id}', [TutorialController::class, 'show']);
+    Route::post('/tutorials/{id}/comments', [TutorialCommentController::class, 'store']);
+    Route::delete('/tutorials/comments/{id}', [TutorialCommentController::class, 'destroy']);
 });
