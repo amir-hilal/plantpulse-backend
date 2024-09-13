@@ -39,13 +39,24 @@ class TutorialController extends Controller
                         if (count($response->items) > 0) {
                             $videoData = $response->items[0];
 
-                            // Update tutorial object with YouTube data
-                            $tutorial->thumbnail_url = $videoData->snippet->thumbnails->default->url;
+                            // Select the best available thumbnail
+                            if (isset($videoData->snippet->thumbnails->maxres)) {
+                                $tutorial->thumbnail_url = $videoData->snippet->thumbnails->maxres->url;
+                            } elseif (isset($videoData->snippet->thumbnails->standard)) {
+                                $tutorial->thumbnail_url = $videoData->snippet->thumbnails->standard->url;
+                            } elseif (isset($videoData->snippet->thumbnails->high)) {
+                                $tutorial->thumbnail_url = $videoData->snippet->thumbnails->high->url;
+                            } elseif (isset($videoData->snippet->thumbnails->medium)) {
+                                $tutorial->thumbnail_url = $videoData->snippet->thumbnails->medium->url;
+                            } else {
+                                $tutorial->thumbnail_url = $videoData->snippet->thumbnails->default->url;
+                            }
+
+                            // Set views and duration as before
                             $tutorial->views = $videoData->statistics->viewCount;
                             $tutorial->duration = $this->convertISO8601Duration($videoData->contentDetails->duration);
                         }
                     } catch (\Exception $e) {
-                        // Handle API errors
                         \Log::error('Failed to fetch YouTube video data: ' . $e->getMessage());
                         return response()->json(['error' => 'Failed to fetch video data.'], 500);
                     }
