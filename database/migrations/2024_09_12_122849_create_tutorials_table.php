@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        
         Schema::create('tutorials', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->text('description');
             $table->string('video_url');
-            $table->string('thumbnail_url');
             $table->json('tags')->nullable();  // Tags as JSON array
-            $table->unsignedBigInteger('views')->default(0);
             $table->timestamps();
         });
     }

@@ -12,9 +12,7 @@ class Tutorial extends Model
         'title',
         'description',
         'video_url',
-        'thumbnail_url',
         'tags',
-        'views',
     ];
 
     // Cast the 'tags' attribute to array
