@@ -26,6 +26,7 @@ class TutorialController extends Controller
         // Filter tutorials by title or description
         $tutorials = Tutorial::where('title', 'LIKE', '%' . $query . '%')
             ->orWhere('description', 'LIKE', '%' . $query . '%')
+            ->orWhere('tags', 'LIKE', '%' . $query . '%')
             ->paginate(10);
 
         $this->fetchYouTubeData($tutorials);

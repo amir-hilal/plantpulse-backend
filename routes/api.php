@@ -77,7 +77,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
     Route::post('/upload/profile-photo', [UserController::class, 'uploadProfilePhoto']);
 
-    // Group routes by posts
     Route::prefix('posts')->group(function () {
         Route::post('/', [CommunityPostController::class, 'createPost']);
         Route::get('/friends/all', [CommunityPostController::class, 'fetchFriendsPosts']);
@@ -89,7 +88,7 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
     });
 
-    // Group routes by friends
+
     Route::prefix('friends')->group(function () {
         Route::get('/{username}', [FriendController::class, 'listFriends']);
         Route::post('/request', [FriendController::class, 'sendRequest']);
@@ -100,7 +99,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/friend-requests', [FriendController::class, 'listRequests']);
 
-    // Group routes by users
+
     Route::prefix('users')->group(function () {
         Route::put('/{username}', [UserController::class, 'update']);
         Route::get('/all', [UserController::class, 'index']);
@@ -119,17 +118,17 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::prefix('plants')->group(function () {
-        Route::post('', [PlantController::class, 'store']); // Create a plant
-        Route::get('/{id}', [PlantController::class, 'show']); // Get a single plant
-        Route::put('/{id}', [PlantController::class, 'update']); // Update a plant
-        Route::delete('/{id}', [PlantController::class, 'destroy']); // Delete a plant
-        Route::get('/{plantId}/timelines', [PlantTimelineController::class, 'index']); // Get all timeline entries for a plant
+        Route::post('', [PlantController::class, 'store']);
+        Route::get('/{id}', [PlantController::class, 'show']);
+        Route::put('/{id}', [PlantController::class, 'update']);
+        Route::delete('/{id}', [PlantController::class, 'destroy']);
+        Route::get('/{plantId}/timelines', [PlantTimelineController::class, 'index']);
 
     });
 
     Route::prefix('timelines')->group(function () {
 
-        // Plant Timeline Routes
+
         Route::post('/', [PlantTimelineController::class, 'store']);
         Route::get('/{id}', [PlantTimelineController::class, 'show']);
         Route::put('/{id}', [PlantTimelineController::class, 'update']);
