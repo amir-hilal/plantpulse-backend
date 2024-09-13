@@ -137,15 +137,18 @@ Route::middleware('auth:api')->group(function () {
     });
 
 
-    Route::middleware('admin')->group(function () {
-        Route::post('/tutorials', [TutorialController::class, 'store']);
-        Route::put('/tutorials/{id}', [TutorialController::class, 'update']);
-        Route::delete('/tutorials/{id}', [TutorialController::class, 'destroy']);
-    });
 
-    // General Routes (both users and admins)
-    Route::get('/tutorials', [TutorialController::class, 'index']);
-    Route::get('/tutorials/{id}', [TutorialController::class, 'show']);
-    Route::post('/tutorials/{id}/comments', [TutorialCommentController::class, 'store']);
-    Route::delete('/tutorials/comments/{id}', [TutorialCommentController::class, 'destroy']);
+    Route::prefix('tutorials')->group(function () {
+        Route::middleware('admin')->group(function () {
+            Route::post('/', [TutorialController::class, 'store']);
+            Route::put('/{id}', [TutorialController::class, 'update']);
+            Route::delete('/{id}', [TutorialController::class, 'destroy']);
+        });
+
+        Route::get('/', [TutorialController::class, 'index']);
+        Route::get('/search', [TutorialController::class, 'search']);  // New search route
+        Route::get('/{id}', [TutorialController::class, 'show']);
+        Route::post('/{id}/comments', [TutorialCommentController::class, 'store']);
+        Route::delete('/comments/{id}', [TutorialCommentController::class, 'destroy']);
+    });
 });
