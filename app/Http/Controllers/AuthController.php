@@ -45,7 +45,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Please check your email to verify your account.', 'user' => $user, 'token' => $token], 201);
     }
 
-
     public function login(Request $request)
     {
         $request->validate([
@@ -54,7 +53,6 @@ class AuthController extends Controller
         ]);
 
         $loginField = $request->input('email_or_username');
-
         $loginType = filter_var($loginField, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         $credentials = [
@@ -69,17 +67,19 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-          
+            if ($request->header('App-Type') === 'admin' && $user->role !== 'admin') {
+                return response()->json(['error' => 'Unauthorized access. Admins only.'], 403);
+            }
 
-            return response()
-                ->json([
-                    'token' => $token,
-                    'user' => $user,
-                ], 200);
+            return response()->json([
+                'token' => $token,
+                'user' => $user,
+            ], 200);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
         }
     }
+
 
     public function me(Request $request)
     {

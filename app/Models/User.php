@@ -36,7 +36,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'address',
         'google_id',
         'role',
-        'email_verified_at'
+        'email_verified_at',
+        'google_id',
     ];
     /**
      * The attributes that should be hidden for serialization.
@@ -48,7 +49,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'remember_token',
         'deleted_at',
         'role',
-        'google_id',
         'created_at',
         'updated_at'
     ];

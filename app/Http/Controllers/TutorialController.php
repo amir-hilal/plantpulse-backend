@@ -2,31 +2,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tutorial;
-use Illuminate\Http\Request;
 use Google_Client;
 use Google_Service_YouTube;
-
+use Illuminate\Http\Request;
+use GuzzleHttp\Client;
 class TutorialController extends Controller
 {
-    // Fetch all tutorials with pagination (10 per page)
+    // Fetch all tutorials with YouTube data (using Service Account)
     public function index(Request $request)
     {
-        // Fetch tutorials from DB
         $tutorials = Tutorial::paginate(10);
 
-        // Initialize Google Client
         $client = new Google_Client();
-        $client->setClientId(env('GOOGLE_CLIENT_ID'));
-        $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
-        $client->setRedirectUri(env('GOOGLE_REDIRECT_URI'));
-        $client->setAccessType('offline');
-        $client->addScope(Google_Service_YouTube::YOUTUBE_READONLY);
-
-        // Check if OAuth token is set
-        if ($client->isAccessTokenExpired()) {
-            // Redirect to authorization URL if token expired (or obtain a new one)
-            return redirect()->away($client->createAuthUrl());
-        }
+        $guzzleClient = new Client([
+            'verify' => false,
+        ]);
+        $client->setHttpClient($guzzleClient);
+        $client->setAuthConfig(storage_path(env('GOOGLE_SERVICE_ACCOUNT_JSON')));
+        $client->setScopes([Google_Service_YouTube::YOUTUBE_READONLY]);
 
         $youtube = new Google_Service_YouTube($client);
 
@@ -53,6 +46,7 @@ class TutorialController extends Controller
                         }
                     } catch (\Exception $e) {
                         // Handle API errors
+                        \Log::error('Failed to fetch YouTube video data: ' . $e->getMessage());
                         return response()->json(['error' => 'Failed to fetch video data.'], 500);
                     }
                 }
@@ -95,16 +89,10 @@ class TutorialController extends Controller
 
             if ($videoId) {
                 try {
+                    // Initialize Google Client
                     $client = new Google_Client();
-                    $client->setClientId(env('GOOGLE_CLIENT_ID'));
-                    $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
-                    $client->setRedirectUri(env('GOOGLE_REDIRECT_URI'));
-                    $client->setAccessType('offline');
-                    $client->addScope(Google_Service_YouTube::YOUTUBE_READONLY);
-
-                    if ($client->isAccessTokenExpired()) {
-                        return redirect()->away($client->createAuthUrl());
-                    }
+                    $client->setAuthConfig(storage_path(env('GOOGLE_SERVICE_ACCOUNT_JSON')));
+                    $client->setScopes([Google_Service_YouTube::YOUTUBE_READONLY]);
 
                     $youtube = new Google_Service_YouTube($client);
 
