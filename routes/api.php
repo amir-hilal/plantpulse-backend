@@ -29,6 +29,9 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset');
 Route::post('password/reset', [PasswordResetController::class, 'reset']);
 Route::get('email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
+use App\Http\Controllers\GoogleAuthController;
+
+Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
 
 
 Route::get('/weather', function () {
