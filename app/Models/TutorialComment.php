@@ -11,7 +11,7 @@ class TutorialComment extends Model
     protected $fillable = [
         'tutorial_id',
         'user_id',
-        'comment',
+        'comment_text',
     ];
 
     // A comment belongs to a tutorial

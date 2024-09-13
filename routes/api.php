@@ -149,5 +149,6 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{id}', [TutorialController::class, 'show']);
         Route::post('/{id}/comments', [TutorialCommentController::class, 'store']);
         Route::delete('/comments/{id}', [TutorialCommentController::class, 'destroy']);
+        Route::get('/{id}/comments', [TutorialCommentController::class, 'index']);
     });
 });

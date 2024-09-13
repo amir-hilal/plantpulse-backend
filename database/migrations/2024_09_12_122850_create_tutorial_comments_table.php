@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('tutorial_id');
             $table->unsignedBigInteger('user_id');
-            $table->text('comment');
+            $table->text('comment_text');
             $table->timestamps();
 
             // Foreign keys
