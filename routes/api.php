@@ -153,6 +153,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{id}/comments', [TutorialCommentController::class, 'index']);
     });
 
-    Route::post('/send-message', [ChatController::class, 'sendMessage']);
+    Route::get('chats/{receiver_id}', [ChatController::class, 'getMessages']);
+    Route::post('chats/send', [ChatController::class, 'sendMessage']);
 
 });
