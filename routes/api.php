@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Broadcast;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-Broadcast::routes(['middleware' => ['auth:api']]);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset');
@@ -75,10 +74,10 @@ Route::get('/forecast', function () {
 });
 
 Route::middleware('auth:api')->group(function () {
+    Broadcast::routes();
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
     Route::post('/upload/profile-photo', [UserController::class, 'uploadProfilePhoto']);
-
     Route::prefix('posts')->group(function () {
         Route::post('/', [CommunityPostController::class, 'createPost']);
         Route::get('/friends/all', [CommunityPostController::class, 'fetchFriendsPosts']);
