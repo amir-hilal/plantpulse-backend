@@ -15,6 +15,7 @@ use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\TutorialCommentController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ChatController;
+use Illuminate\Support\Facades\Broadcast;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -25,7 +26,7 @@ use App\Http\Controllers\ChatController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
+Broadcast::routes(['middleware' => ['auth:api']]);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset');
@@ -155,5 +156,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('chats/{receiver_id}', [ChatController::class, 'getMessages']);
     Route::post('chats/send', [ChatController::class, 'sendMessage']);
+    Route::get('chats/conversations', [ChatController::class, 'getConversations']);
 
 });
