@@ -156,6 +156,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('chats/{receiver_id}', [ChatController::class, 'getMessages']);
     Route::post('chats/send', [ChatController::class, 'sendMessage']);
-    Route::get('chats/conversations', [ChatController::class, 'getConversations']);
+    Route::get('chats/users/conversations', [ChatController::class, 'getConversations']);
 
 });

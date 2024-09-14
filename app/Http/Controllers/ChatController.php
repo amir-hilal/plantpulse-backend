@@ -33,6 +33,7 @@ class ChatController extends Controller
 
         $conversations = Conversation::where('user_one_id', $userId)
             ->orWhere('user_two_id', $userId)
+            ->with('lastMessage')
             ->get();
 
         return response()->json($conversations);
@@ -49,10 +50,7 @@ class ChatController extends Controller
         $senderId = Auth::id();
         $receiverId = $request->receiver_id;
 
-        // Find or create the conversation between the sender and receiver
         $conversation = Conversation::findOrCreate($senderId, $receiverId);
-
-        // Store the message
         $message = Message::create([
             'sender_id' => $senderId,
             'receiver_id' => $receiverId,

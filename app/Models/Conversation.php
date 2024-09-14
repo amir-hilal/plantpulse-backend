@@ -21,22 +21,35 @@ class Conversation extends Model
         return $this->belongsTo(User::class, 'user_two_id');
     }
 
-    public static function findOrCreate($userIdOne, $userIdTwo)
+    public static function findOrCreate($userOneId, $userTwoId)
     {
-        $userIds = [$userIdOne, $userIdTwo];
-        sort($userIds);
+        // First, try to find the conversation
+        $conversation = self::where(function ($query) use ($userOneId, $userTwoId) {
+            $query->where('user_one_id', $userOneId)
+                ->where('user_two_id', $userTwoId);
+        })->orWhere(function ($query) use ($userOneId, $userTwoId) {
+            $query->where('user_one_id', $userTwoId)
+                ->where('user_two_id', $userOneId);
+        })->first();
 
-        $conversation = self::where('user_one_id', $userIds[0])
-            ->where('user_two_id', $userIds[1])
-            ->first();
-
-        if ($conversation) {
-            return $conversation;
+        // If no conversation exists, create a new one
+        if (!$conversation) {
+            $conversation = self::create([
+                'user_one_id' => $userOneId,
+                'user_two_id' => $userTwoId,
+            ]);
         }
 
-        return self::create([
-            'user_one_id' => $userIds[0],
-            'user_two_id' => $userIds[1],
-        ]);
+        return $conversation;
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    public function lastMessage()
+    {
+        return $this->hasOne(Message::class)->latestOfMany();
     }
 }
