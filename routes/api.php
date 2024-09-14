@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\TutorialCommentController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\ChatController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -151,4 +152,7 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/comments/{id}', [TutorialCommentController::class, 'destroy']);
         Route::get('/{id}/comments', [TutorialCommentController::class, 'index']);
     });
+
+    Route::post('/send-message', [ChatController::class, 'sendMessage']);
+
 });

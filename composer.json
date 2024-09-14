@@ -15,7 +15,7 @@
         "laravel/socialite": "^5.15",
         "laravel/tinker": "^2.8",
         "league/flysystem-aws-s3-v3": "^3.28",
-        "pusher/pusher-php-server": "*",
+        "pusher/pusher-php-server": "^7.2",
         "socialiteproviders/google": "^4.1",
         "tymon/jwt-auth": "^2.1"
     },
