@@ -29,8 +29,13 @@ class ScheduleWateringForPlants extends Command
 
         foreach ($plants as $plant) {
             $plant->scheduleWateringEvents();
+
+            if ($plant->next_time_to_water->isToday() || $plant->next_time_to_water->isFuture()) {
+                $plant->sendWateringReminder(); // Send notification to user
+            }
         }
 
-        $this->info('Watering schedules for all plants have been updated.');
+        $this->info('Watering schedules for all plants have been updated and reminders sent.');
+
     }
 }

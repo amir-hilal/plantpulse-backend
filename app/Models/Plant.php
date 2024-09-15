@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\PlantTimeline;
 use Carbon\Carbon;
+use App\Notifications\WateringReminderNotification;
 
 class Plant extends Model
 {
@@ -104,6 +105,13 @@ class Plant extends Model
                 ]);
             }
         }
+    }
+
+    public function sendWateringReminder()
+    {
+        // Assuming the user is related to the plant through the garden
+        $user = $this->garden->user;
+        $user->notify(new WateringReminderNotification($this));
     }
 
 }
