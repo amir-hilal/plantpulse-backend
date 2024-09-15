@@ -15,6 +15,7 @@ use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\TutorialCommentController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\WateringEventController;
 use Illuminate\Support\Facades\Broadcast;
 /*
 |--------------------------------------------------------------------------
@@ -124,6 +125,8 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{id}', [PlantController::class, 'update']);
         Route::delete('/{id}', [PlantController::class, 'destroy']);
         Route::get('/{plantId}/timelines', [PlantTimelineController::class, 'index']);
+        Route::get('/{plant}/watering-events', [WateringEventController::class, 'index']);
+        Route::put('/{plant}/watering-events/{event}', [WateringEventController::class, 'markComplete']);
 
     });
 

@@ -69,7 +69,7 @@ class PlantController extends Controller
 
         $plant->age_in_days = $plant->getAgeInDaysAttribute();
         $plant->formatted_age = $plant->getFormattedAgeAttribute();
-
+        $plant->scheduleWateringEvents(); 
         return response()->json($plant, 201);
     }
 

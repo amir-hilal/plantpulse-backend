@@ -74,4 +74,36 @@ class Plant extends Model
         return $this->hasMany(WateringEvent::class)->where('is_done', true)->count();
     }
 
+    public function wateringEvents()
+    {
+        return $this->hasMany(WateringEvent::class);
+    }
+
+    public function scheduleWateringEvents()
+    {
+        $wateringFrequency = 3; // 3 times per week
+        $nextWateringDates = [];
+
+        $startDate = Carbon::now()->startOfWeek()->addWeek(); // Start from the upcoming Monday
+        $weekDays = [2, 4, 6]; // Example: Tuesday, Thursday, Saturday
+
+        foreach ($weekDays as $day) {
+            $nextWateringDates[] = $startDate->copy()->addDays($day - 1);
+        }
+
+        foreach ($nextWateringDates as $date) {
+            $existingEvent = WateringEvent::where('plant_id', $this->id)
+                ->whereDate('scheduled_date', $date)
+                ->first();
+
+            if (!$existingEvent) {
+                WateringEvent::create([
+                    'plant_id' => $this->id,
+                    'scheduled_date' => $date,
+                    'is_done' => false,
+                ]);
+            }
+        }
+    }
+
 }
