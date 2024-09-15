@@ -82,16 +82,18 @@ class Plant extends Model
 
     public function scheduleWateringEvents()
     {
-        $wateringFrequency = 3; // 3 times per week
+        $wateringFrequency = $this->watering_frequency;
         $nextWateringDates = [];
 
+        $daysBetweenWaterings = floor(7 / $wateringFrequency);
         $startDate = Carbon::now()->startOfWeek()->addWeek(); // Start from the upcoming Monday
-        $weekDays = [2, 4, 6]; // Example: Tuesday, Thursday, Saturday
 
-        foreach ($weekDays as $day) {
-            $nextWateringDates[] = $startDate->copy()->addDays($day - 1);
+        // Generate the next watering dates based on the frequency
+        for ($i = 0; $i < $wateringFrequency; $i++) {
+            $nextWateringDates[] = $startDate->copy()->addDays($i * $daysBetweenWaterings);
         }
 
+        // Loop through and create watering events for the plant
         foreach ($nextWateringDates as $date) {
             $existingEvent = WateringEvent::where('plant_id', $this->id)
                 ->whereDate('scheduled_date', $date)
@@ -106,6 +108,7 @@ class Plant extends Model
             }
         }
     }
+
 
     public function sendWateringReminder()
     {

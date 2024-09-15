@@ -65,13 +65,17 @@ class WateringEventController extends Controller
     }
 
 
-    public function getUserWateringSchedules(Request $request)
+    public function getUserTodayWateringSchedules(Request $request)
     {
         $user = $request->user();
 
         // Fetch all watering events for plants in user's gardens along with plant names
         $wateringEvents = $user->gardens()
-            ->with('plants.wateringEvents.plant')
+            ->with([
+                'plants.wateringEvents' => function ($query) {
+                    $query->whereDate('scheduled_date', Carbon::today());
+                }
+            ])
             ->get()
             ->pluck('plants')
             ->flatten()
