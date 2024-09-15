@@ -86,9 +86,15 @@ class PlantController extends Controller
     // Show a single plant
     public function show($id)
     {
-        $plant = Plant::findOrFail($id);
-        return response()->json($plant);
+        $plant = Plant::with('garden:id,name')->findOrFail($id); 
+
+        // Include garden name in the response
+        return response()->json([
+            'plant' => $plant,
+            'gardenName' => $plant->garden->name, // Include garden's name in the response
+        ]);
     }
+
 
     // Update a plant
     public function update(Request $request, $id)
