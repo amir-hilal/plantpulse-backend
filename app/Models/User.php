@@ -108,4 +108,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             ->fromSub($sentFriendships->union($receivedFriendships), 'friendships')
             ->get();
     }
+    public function gardens()
+    {
+        return $this->hasMany(Garden::class);
+    }
+
 }
