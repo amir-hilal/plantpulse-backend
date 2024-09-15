@@ -67,9 +67,18 @@ class PlantController extends Controller
             'image_path' => $imagePath,
         ]);
 
+        $plant->scheduleWateringEvents();
+
+        // Update next_time_to_water to the date of the first scheduled watering event
+        $nextWateringEvent = $plant->wateringEvents()->orderBy('scheduled_date', 'asc')->first();
+        if ($nextWateringEvent) {
+            $plant->update([
+                'next_time_to_water' => $nextWateringEvent->scheduled_date
+            ]);
+        }
+
         $plant->age_in_days = $plant->getAgeInDaysAttribute();
         $plant->formatted_age = $plant->getFormattedAgeAttribute();
-        $plant->scheduleWateringEvents(); 
         return response()->json($plant, 201);
     }
 
