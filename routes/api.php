@@ -142,6 +142,8 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{id}', [PlantController::class, 'update']);
         Route::delete('/{id}', [PlantController::class, 'destroy']);
         Route::get('/{plantId}/timelines', [PlantTimelineController::class, 'index']);
+        Route::post('/{plantId}/timelines', [PlantTimelineController::class, 'store']);
+        Route::delete('/timelines/{id}', [PlantTimelineController::class, 'destroy']);
         Route::get('/{plant}/watering-events', [WateringEventController::class, 'index']);
         Route::put('/{plant}/watering-events/{event}', [WateringEventController::class, 'markComplete']);
 

@@ -6,11 +6,16 @@ use Illuminate\Http\Request;
 
 class PlantTimelineController extends Controller
 {
-    // Get all timeline entries for a specific plant
-    public function index($plantId)
+    public function index($plantId, Request $request)
     {
-        $timeline = PlantTimeline::where('plant_id', $plantId)->get();
-        return response()->json($timeline);
+        $perPage = $request->get('perPage', 5);
+        $page = $request->get('page', 1);
+
+        $timelines = PlantTimeline::where('plant_id', $plantId)
+            ->orderBy('created_at', 'desc') 
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json($timelines);
     }
 
     // Store a new timeline entry
