@@ -74,6 +74,21 @@ Route::get('/forecast', function () {
     return response()->json(['error' => 'Failed to fetch weather forecast data'], 500);
 });
 
+Route::prefix('tutorials')->group(function () {
+    Route::middleware('admin')->group(function () {
+        Route::post('/', [TutorialController::class, 'store']);
+        Route::put('/{id}', [TutorialController::class, 'update']);
+        Route::delete('/{id}', [TutorialController::class, 'destroy']);
+    });
+
+    Route::get('/', [TutorialController::class, 'index']);
+    Route::get('/search', [TutorialController::class, 'search']);  // New search route
+    Route::get('/{id}', [TutorialController::class, 'show']);
+    Route::post('/{id}/comments', [TutorialCommentController::class, 'store']);
+    Route::delete('/comments/{id}', [TutorialCommentController::class, 'destroy']);
+    Route::get('/{id}/comments', [TutorialCommentController::class, 'index']);
+});
+
 Route::middleware('auth:api')->group(function () {
     Broadcast::routes();
     Route::get('/me', [AuthController::class, 'me']);
@@ -143,20 +158,7 @@ Route::middleware('auth:api')->group(function () {
 
 
 
-    Route::prefix('tutorials')->group(function () {
-        Route::middleware('admin')->group(function () {
-            Route::post('/', [TutorialController::class, 'store']);
-            Route::put('/{id}', [TutorialController::class, 'update']);
-            Route::delete('/{id}', [TutorialController::class, 'destroy']);
-        });
 
-        Route::get('/', [TutorialController::class, 'index']);
-        Route::get('/search', [TutorialController::class, 'search']);  // New search route
-        Route::get('/{id}', [TutorialController::class, 'show']);
-        Route::post('/{id}/comments', [TutorialCommentController::class, 'store']);
-        Route::delete('/comments/{id}', [TutorialCommentController::class, 'destroy']);
-        Route::get('/{id}/comments', [TutorialCommentController::class, 'index']);
-    });
 
     Route::get('chats/{receiver_id}', [ChatController::class, 'getMessages']);
     Route::post('chats/send', [ChatController::class, 'sendMessage']);
