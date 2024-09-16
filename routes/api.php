@@ -94,6 +94,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
     Route::post('/upload/profile-photo', [UserController::class, 'uploadProfilePhoto']);
+    Route::post('profile/update-cover-photo/{id}', [UserController::class, 'updateCoverPhoto']);
+
     Route::prefix('posts')->group(function () {
         Route::post('/', [CommunityPostController::class, 'createPost']);
         Route::get('/friends/all', [CommunityPostController::class, 'fetchFriendsPosts']);

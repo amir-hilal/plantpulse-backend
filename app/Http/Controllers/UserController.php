@@ -93,52 +93,43 @@ class UserController extends Controller
             'file' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $imageName = time() . '.' . $request->file->extension();
-        $filePath = $request->file('file')->getPathname();
-        $bucketName = env('AWS_BUCKET');
-        $key = 'profile/' . $imageName;
+        // Upload the image to the "profile" folder in S3
+        $imageUrl = $this->uploadToS3($request->file('file'), 'profile');
 
-        \Log::error('file: ' . $request->file('file')->getClientOriginalName());
-
-        $s3 = new S3Client([
-            'version' => 'latest',
-            'region' => env('AWS_DEFAULT_REGION'),
-            'credentials' => [
-                'key' => env('AWS_ACCESS_KEY_ID'),
-                'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            ],
-            'http' => [
-                'verify' => false,
-                // 'verify' => storage_path('certs/pypad-instance-key.pem'),
-                // we should look back in to this to make it true after creating ssl
-            ],
-        ]);
-
-        try {
-            $result = $s3->putObject([
-                'Bucket' => $bucketName,
-                'Key' => $key,
-                'SourceFile' => $filePath,
-                'ACL' => 'public-read',
-            ]);
-
-            $imageUrl = $result['ObjectURL'];
-
-            \Log::info('Successfully uploaded image to S3. URL: ' . $imageUrl);
-
+        if ($imageUrl) {
+            \Log::info('Successfully uploaded profile image to S3. URL: ' . $imageUrl);
             return response()->json([
-                'message' => 'Image uploaded successfully',
-                'url' => $imageUrl
+                'message' => 'Profile photo uploaded successfully',
+                'url' => $imageUrl,
             ], 200);
-
-        } catch (AwsException $e) {
-            \Log::error('S3 Upload Error: ' . $e->getMessage());
-
-            return response()->json([
-                'error' => 'An error occurred while uploading the image: ' . $e->getMessage()
-            ], 500);
+        } else {
+            return response()->json(['error' => 'An error occurred while uploading the image'], 500);
         }
     }
+    public function updateCoverPhoto(Request $request, $id)
+    {
+        $request->validate(['file' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048']);
+
+        $user = User::findOrFail($id);
+
+        if ($request->hasFile('file')) {
+            // Upload the image to the "cover" folder in S3
+            $imageUrl = $this->uploadToS3($request->file('file'), 'cover');
+
+            if ($imageUrl) {
+                // Update the user's cover photo URL
+                $user->update(['cover_photo_url' => $imageUrl]);
+
+                return response()->json($user, 200); // Return updated user data
+            } else {
+                return response()->json(['error' => 'Failed to upload cover photo'], 500);
+            }
+        } else {
+            return response()->json(['error' => 'No file provided'], 400);
+        }
+    }
+
+
     public function index(Request $request)
     {
         $perPage = 20;
@@ -262,5 +253,42 @@ class UserController extends Controller
             'users' => $formattedUsers,
             'nextPageUrl' => $users->nextPageUrl(),
         ]);
+    }
+
+    private function uploadToS3($file, $folder = 'profile')
+    {
+        $imageName = time() . '.' . $file->extension(); // Generate a unique name for the image
+        $filePath = $file->getPathname(); // Get the temporary file path
+        $bucketName = env('AWS_BUCKET');
+        $key = $folder . 'profile/' . $imageName; // Create the key (folder and filename)
+
+        // Initialize the S3 client
+        $s3 = new S3Client([
+            'version' => 'latest',
+            'region' => env('AWS_DEFAULT_REGION'),
+            'credentials' => [
+                'key' => env('AWS_ACCESS_KEY_ID'),
+                'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            ],
+            'http' => [
+                'verify' => false, // Disable SSL verification, adjust if needed
+            ],
+        ]);
+
+        try {
+            // Upload the image to S3
+            $result = $s3->putObject([
+                'Bucket' => $bucketName,
+                'Key' => $key,
+                'SourceFile' => $filePath,
+                'ACL' => 'public-read', // Make the file publicly accessible
+            ]);
+
+            // Return the public URL of the uploaded image
+            return $result['ObjectURL'];
+        } catch (AwsException $e) {
+            \Log::error('S3 Upload Error: ' . $e->getMessage());
+            return null;
+        }
     }
 }
