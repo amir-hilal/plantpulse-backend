@@ -125,6 +125,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/all/search', [UserController::class, 'search']);
         Route::get('/show/{username}', [UserController::class, 'show']);
         Route::get('/watering-schedules/today', [WateringEventController::class, 'getUserTodayWateringSchedules']);
+        Route::get('/watering-schedules/week', [WateringEventController::class, 'getUserWeekWateringSchedules']);
 
     });
 

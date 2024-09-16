@@ -14,16 +14,27 @@ class WateringEventController extends Controller
     }
     public function markComplete(Request $request, $plantId, $eventId)
     {
+        // Retrieve the event and its associated plant
         $event = WateringEvent::with('plant:id,name')->findOrFail($eventId);
 
-        if (Carbon::now()->toDateString() > Carbon::parse($event->scheduled_date)->toDateString()) {
-            return response()->json(['message' => 'Cannot mark as done, past the scheduled date'], 403);
+        // Get today's date
+        $today = Carbon::now()->toDateString();
+
+        // Get the event's scheduled date
+        $scheduledDate = Carbon::parse($event->scheduled_date)->toDateString();
+
+        // Ensure the event can only be marked as done if it is scheduled for today
+        if ($scheduledDate !== $today) {
+            return response()->json(['message' => 'You can only mark the event as done on the scheduled date'], 403);
         }
+
+        // Update the event status
         $event->update([
             'is_done' => !$event->is_done,
             'completed_at' => !$event->is_done ? now() : null,
         ]);
 
+        // Set the plant name for the response and unset the plant relationship
         $event->plant_name = $event->plant->name;
         unset($event->plant);
 
@@ -93,6 +104,45 @@ class WateringEventController extends Controller
 
         return response()->json($wateringEvents);
     }
+
+    public function getUserWeekWateringSchedules(Request $request)
+    {
+        $user = $request->user();
+
+        // Get start and end dates for the current week (Monday to Sunday)
+        $startOfWeek = Carbon::now()->startOfWeek()->format('Y-m-d');
+        $endOfWeek = Carbon::now()->endOfWeek()->format('Y-m-d');
+
+        \Log::info('Formatted Start of Week: ' . $startOfWeek);
+        \Log::info('Formatted End of Week: ' . $endOfWeek);
+
+        // Fetch all watering events for the current week using whereBetween
+        $wateringEvents = $user->gardens()
+            ->with([
+                'plants.wateringEvents' => function ($query) use ($startOfWeek, $endOfWeek) {
+                    $query->whereBetween('scheduled_date', [$startOfWeek, $endOfWeek]);
+                }
+            ])
+            ->get()
+            ->pluck('plants')
+            ->flatten()
+            ->pluck('wateringEvents')
+            ->flatten()
+            ->filter() // Ensure we filter out null wateringEvents
+            ->map(function ($event) {
+                return [
+                    'id' => $event->id,
+                    'scheduled_date' => $event->scheduled_date,
+                    'is_done' => $event->is_done,
+                    'completed_at' => $event->completed_at,
+                    'plant_id' => $event->plant->id,
+                    'plant_name' => $event->plant->name,
+                ];
+            });
+
+        return response()->json($wateringEvents);
+    }
+
 
 
 }
