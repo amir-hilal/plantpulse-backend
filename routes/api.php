@@ -17,6 +17,7 @@ use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\WateringEventController;
 use Illuminate\Support\Facades\Broadcast;
+use App\Http\Controllers\AdminDashboardController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -79,6 +80,7 @@ Route::prefix('tutorials')->group(function () {
         Route::post('/', [TutorialController::class, 'store']);
         Route::put('/{id}', [TutorialController::class, 'update']);
         Route::delete('/{id}', [TutorialController::class, 'destroy']);
+        Route::get('/dashboard/stats', [AdminDashboardController::class, 'getStats']);
     });
 
     Route::get('/', [TutorialController::class, 'index']);

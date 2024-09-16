@@ -39,43 +39,70 @@ class PlantTimelineController extends Controller
         ]);
 
         // Retrieve the previous 5 timeline entries for this plant (excluding the current one)
-        $previousTimelines = PlantTimeline::where('plant_id', $validated['plant_id'])
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->pluck('description')
-            ->toArray();
+        // $previousTimelines = PlantTimeline::where('plant_id', $validated['plant_id'])
+        //     ->orderBy('created_at', 'desc')
+        //     ->take(5)
+        //     ->pluck('description')
+        //     ->toArray();
 
         // Prepare AI request
-        $aiMessages = [
-            ['role' => 'system', 'content' => 'You are a helpful assistant for plant care.']
-        ];
+        // $aiMessages = [
+        //     ['role' => 'system', 'content' => 'You are a helpful assistant for plant care.']
+        // ];
 
-        foreach (array_reverse($previousTimelines) as $timelineDescription) {
-            $aiMessages[] = ['role' => 'user', 'content' => $timelineDescription];
-        }
+        // foreach (array_reverse($previousTimelines) as $timelineDescription) {
+        //     $aiMessages[] = ['role' => 'user', 'content' => $timelineDescription];
+        // }
 
-        $aiMessages[] = ['role' => 'user', 'content' => $validated['description']];
+        // $aiMessages[] = ['role' => 'user', 'content' => $validated['description']];
 
         // Log AI request
-        \Log::info('AI Request', ['messages' => $aiMessages]);
+        // \Log::info('AI Request', ['messages' => $aiMessages]);
 
         // Send the message to the assistant and store the response
-        $aiResponse = $this->getAssistantResponse($aiMessages);
+        // $aiResponse = $this->getAssistantResponse($aiMessages);
 
         // Log AI response
-        \Log::info('AI Response', ['response' => $aiResponse]);
+        // \Log::info('AI Response', ['response' => $aiResponse]);
 
-        if ($aiResponse) {
-            PlantTimeline::create([
-                'plant_id' => $validated['plant_id'],
-                'description' => $aiResponse,
-                'source' => 'assistant', // Mark it as assistant's input
-            ]);
+        // if ($aiResponse) {
+        //     PlantTimeline::create([
+        //         'plant_id' => $validated['plant_id'],
+        //         'description' => $aiResponse,
+        //         'source' => 'assistant', // Mark it as assistant's input
+        //     ]);
+        // }
+
+        // Disease detection using the Kaggle model
+        if ($request->hasFile('image')) {
+            $diseasePrediction = $this->detectPlantDisease($timeline->image_path);
+            if ($diseasePrediction) {
+                PlantTimeline::create([
+                    'plant_id' => $validated['plant_id'],
+                    'description' => "Detected disease: " . $diseasePrediction,
+                    'source' => 'ai', // Mark it as AI's input
+                ]);
+            }
         }
 
-        return response()->json(['userTimeline' => $timeline, 'assistantTimeline' => $aiResponse], 201);
+        return response()->json(['userTimeline' => $timeline], 201);
     }
 
+    // Function to detect plant disease using the Kaggle model
+    private function detectPlantDisease($imageUrl)
+    {
+        try {
+            $response = Http::withoutVerifying()->post('https://your-service-to-detect-plant-disease', [
+                'image_url' => $imageUrl,
+            ]);
+
+            // Assume the response contains a field 'disease' with the detected disease name
+            return $response->json()['disease'];
+        } catch (\Exception $e) {
+            \Log::error('Plant Disease Detection Error: ' . $e->getMessage());
+            return null;
+        }
+    }
     // Upload image to S3
     private function uploadImageToS3($file)
     {
@@ -114,19 +141,19 @@ class PlantTimelineController extends Controller
     }
 
     // Function to send the request to AI service
-    private function getAssistantResponse($messages)
-    {
-        try {
-            $response = Http::withoutVerifying()->post('https://openai-service.vercel.app/api/openai/chat', [
-                'messages' => $messages,
-            ]);
+    // private function getAssistantResponse($messages)
+    // {
+    //     try {
+    //         $response = Http::withoutVerifying()->post('https://openai-service.vercel.app/api/openai/chat', [
+    //             'messages' => $messages,
+    //         ]);
 
-            $assistantMessage = $response->json()['choices'][0]['message']['content'];
-            return $assistantMessage;
-        } catch (\Exception $e) {
-            \Log::error('AI Service Error: ' . $e->getMessage());
-            return null;
-        }
-    }
+    //         $assistantMessage = $response->json()['choices'][0]['message']['content'];
+    //         return $assistantMessage;
+    //     } catch (\Exception $e) {
+    //         \Log::error('AI Service Error: ' . $e->getMessage());
+    //         return null;
+    //     }
+    // }
 
 }
