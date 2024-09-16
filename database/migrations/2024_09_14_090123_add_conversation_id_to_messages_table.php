@@ -11,17 +11,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('messages', function (Blueprint $table) {
-            $table->unsignedBigInteger('conversation_id')->after('id');
-            $table->foreign('conversation_id')->references('id')->on('conversations')->onDelete('cascade');
-        });
+        // Schema::table('messages', function (Blueprint $table) {
+        //     $table->unsignedBigInteger('conversation_id')->after('id');
+        //     $table->foreign('conversation_id')->references('id')->on('conversations')->onDelete('cascade');
+        // });
     }
 
     public function down()
     {
-        Schema::table('messages', function (Blueprint $table) {
-            $table->dropForeign(['conversation_id']);
-            $table->dropColumn('conversation_id');
-        });
+        // Schema::table('messages', function (Blueprint $table) {
+        //     $table->dropForeign(['conversation_id']);
+        //     $table->dropColumn('conversation_id');
+        // });
     }
 };

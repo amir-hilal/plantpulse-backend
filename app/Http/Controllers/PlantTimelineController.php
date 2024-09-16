@@ -1,16 +1,17 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\PlantTimeline;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use Aws\S3\S3Client;
+use Illuminate\Support\Facades\Http; // To send requests to the AI service
+use Aws\Exception\AwsException;
 
 class PlantTimelineController extends Controller
 {
     public function index($plantId, Request $request)
     {
-        $perPage = $request->get('perPage', 5);
+        $perPage = $request->get('perPage', 10);
         $page = $request->get('page', 1);
 
         $timelines = PlantTimeline::where('plant_id', $plantId)
@@ -22,66 +23,110 @@ class PlantTimelineController extends Controller
 
     public function store(Request $request)
     {
+        // Validate the input
         $validated = $request->validate([
             'plant_id' => 'required|exists:plants,id',
             'description' => 'nullable|string',
-            'image_path' => 'nullable|string', // Modify this to handle image uploads
+            'image' => 'nullable|image|max:2048',
         ]);
 
-        // Store the timeline event
-        $timeline = PlantTimeline::create($validated);
+        // Store the user's input
+        $timeline = PlantTimeline::create([
+            'plant_id' => $validated['plant_id'],
+            'description' => $validated['description'],
+            'image_path' => $request->hasFile('image') ? $this->uploadImageToS3($request->file('image')) : null, // Check if the image exists
+            'source' => 'user', // Mark it as user's input
+        ]);
 
-        // Get the last 5 timeline events
-        $recentTimelines = PlantTimeline::where('plant_id', $request->plant_id)
+        // Retrieve the previous 5 timeline entries for this plant (excluding the current one)
+        $previousTimelines = PlantTimeline::where('plant_id', $validated['plant_id'])
             ->orderBy('created_at', 'desc')
             ->take(5)
-            ->get();
+            ->pluck('description')
+            ->toArray();
 
-        // Prepare the data to send to GPT-4 service
-        $messages = [
-            [
-                'role' => 'system',
-                'content' => 'You are a helpful assistant for plant care.',
-            ],
+        // Prepare AI request
+        $aiMessages = [
+            ['role' => 'system', 'content' => 'You are a helpful assistant for plant care.']
         ];
 
-        // Add recent timeline events to the GPT-4 conversation
-        foreach ($recentTimelines as $event) {
-            $messages[] = [
-                'role' => 'user',
-                'content' => $event->description ?? 'No description',
-            ];
+        foreach (array_reverse($previousTimelines) as $timelineDescription) {
+            $aiMessages[] = ['role' => 'user', 'content' => $timelineDescription];
         }
 
-        // Add the current user message
-        $messages[] = [
-            'role' => 'user',
-            'content' => $request->description ?? 'No description',
-        ];
+        $aiMessages[] = ['role' => 'user', 'content' => $validated['description']];
 
-        // Send data to the GPT-4 service
-        $response = Http::post('https://openai-service.vercel.app/api/openai/chat', [
-            'messages' => $messages,
+        // Log AI request
+        \Log::info('AI Request', ['messages' => $aiMessages]);
+
+        // Send the message to the assistant and store the response
+        $aiResponse = $this->getAssistantResponse($aiMessages);
+
+        // Log AI response
+        \Log::info('AI Response', ['response' => $aiResponse]);
+
+        if ($aiResponse) {
+            PlantTimeline::create([
+                'plant_id' => $validated['plant_id'],
+                'description' => $aiResponse,
+                'source' => 'assistant', // Mark it as assistant's input
+            ]);
+        }
+
+        return response()->json(['userTimeline' => $timeline, 'assistantTimeline' => $aiResponse], 201);
+    }
+
+    // Upload image to S3
+    private function uploadImageToS3($file)
+    {
+        $imageName = time() . '.' . $file->extension();
+        $bucketName = env('AWS_BUCKET');
+        $key = 'timeline-images/' . $imageName;
+
+        $s3 = new S3Client([
+            'version' => 'latest',
+            'region' => env('AWS_DEFAULT_REGION'),
+            'credentials' => [
+                'key' => env('AWS_ACCESS_KEY_ID'),
+                'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            ],
+            'http' => [
+                'verify' => false, // Disable SSL verification
+            ],
         ]);
 
-        // Handle the GPT-4 response
-        if ($response->successful()) {
-            $assistantResponse = $response->json()['choices'][0]['message']['content'];
+        try {
+            $result = $s3->putObject([
+                'Bucket' => $bucketName,
+                'Key' => $key,
+                'SourceFile' => $file->getPathname(),
+                'ACL' => 'public-read',
+            ]);
 
-            // Optionally, store the assistant's response in the timeline or return it to the frontend
-            return response()->json([
-                'timeline' => $timeline,
-                'assistant_response' => $assistantResponse,
-            ], 201);
+            // Log successful upload
+            \Log::info('S3 Upload Success', ['file' => $imageName, 'url' => $result['ObjectURL']]);
+
+            return $result['ObjectURL'];
+        } catch (AwsException $e) {
+            \Log::error('S3 Upload Error: ' . $e->getMessage());
+            return null;
         }
-
-        return response()->json(['message' => 'Failed to get response from GPT-4 service'], 500);
     }
 
-    public function destroy($id)
+    // Function to send the request to AI service
+    private function getAssistantResponse($messages)
     {
-        $timeline = PlantTimeline::findOrFail($id);
-        $timeline->delete();
-        return response()->json(['message' => 'Timeline entry deleted successfully']);
+        try {
+            $response = Http::withoutVerifying()->post('https://openai-service.vercel.app/api/openai/chat', [
+                'messages' => $messages,
+            ]);
+
+            $assistantMessage = $response->json()['choices'][0]['message']['content'];
+            return $assistantMessage;
+        } catch (\Exception $e) {
+            \Log::error('AI Service Error: ' . $e->getMessage());
+            return null;
+        }
     }
+
 }
