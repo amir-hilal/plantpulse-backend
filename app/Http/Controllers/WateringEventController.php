@@ -16,7 +16,7 @@ class WateringEventController extends Controller
     {
         $event = WateringEvent::with('plant:id,name')->findOrFail($eventId);
 
-        if (Carbon::now()->isAfter(Carbon::parse($event->scheduled_date))) {
+        if (Carbon::now()->toDateString() > Carbon::parse($event->scheduled_date)->toDateString()) {
             return response()->json(['message' => 'Cannot mark as done, past the scheduled date'], 403);
         }
         $event->update([
@@ -26,7 +26,6 @@ class WateringEventController extends Controller
 
         $event->plant_name = $event->plant->name;
         unset($event->plant);
-
 
         $this->updatePlantWateringStatus($event->plant, $event);
 
