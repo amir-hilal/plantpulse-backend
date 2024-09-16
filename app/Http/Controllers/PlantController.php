@@ -86,14 +86,20 @@ class PlantController extends Controller
     // Show a single plant
     public function show($id)
     {
+        // Retrieve the plant with the garden relationship
         $plant = Plant::with('garden:id,name')->findOrFail($id);
 
-        // Include garden name in the response
+        // Calculate age and formatted age
+        $plant->age_in_days = $plant->getAgeInDaysAttribute();
+        $plant->formatted_age = $plant->getFormattedAgeAttribute();
+
+        // Return plant data along with garden name and formatted age
         return response()->json([
             'plant' => $plant,
             'garden_name' => $plant->garden->name, // Include garden's name in the response
         ]);
     }
+
 
 
     // Update a plant
@@ -111,8 +117,16 @@ class PlantController extends Controller
             'height' => 'nullable|numeric',
             'health_status' => 'string',
             'watering_frequency' => 'nullable|integer|min:1|max:7',
-
+            'file' => 'nullable|image|mimes:jpg,jpeg,png|max:2048' // Validate image file
         ]);
+        // Check if an image file was uploaded
+        if ($request->hasFile('image')) {
+            $imageUrl = $this->uploadImageToS3($request->file('image'));
+
+            if ($imageUrl) {
+                $validated['image_url'] = $imageUrl; // Set the new image URL if upload was successful
+            }
+        }
 
         // Update the plant with the validated data
         $plant->update($validated);
@@ -122,12 +136,13 @@ class PlantController extends Controller
             PlantTimeline::create([
                 'plant_id' => $plant->id,
                 'description' => $validated['description'],
-                'image_path' => $plant->image_url,
+                'image_path' => $validated['image_url'] ?? $plant->image_url, // Use the new image if available, otherwise use the existing one
             ]);
         }
 
         return response()->json($plant);
     }
+
 
     // Delete a plant
     public function destroy($id)

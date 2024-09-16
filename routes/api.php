@@ -142,7 +142,7 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('plants')->group(function () {
         Route::post('', [PlantController::class, 'store']);
         Route::get('/{id}', [PlantController::class, 'show']);
-        Route::put('/{id}', [PlantController::class, 'update']);
+        Route::post('/{id}', [PlantController::class, 'update']);
         Route::delete('/{id}', [PlantController::class, 'destroy']);
         Route::get('/{plantId}/timelines', [PlantTimelineController::class, 'index']);
         Route::post('/{plantId}/timelines', [PlantTimelineController::class, 'store']);
