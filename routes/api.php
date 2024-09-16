@@ -18,6 +18,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\WateringEventController;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\OpenWeatherController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -38,49 +39,17 @@ Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 
 
-Route::get('/weather', function () {
-    $lat = request('lat');
-    $lon = request('lon');
+Route::get('/weather', [OpenWeatherController::class, 'currentWeather']);
+Route::get('/forecast', [OpenWeatherController::class, 'forecastWeather']);
 
-    $apiKey = env('OPENWEATHER_API_KEY');
-    $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric";
-
-    $response = Http::withOptions([
-        'verify' => false
-    ])->get($weatherUrl);
-
-    if ($response->successful()) {
-        return $response->json();
-    }
-
-    return response()->json(['error' => 'Failed to fetch current weather data'], 500);
-});
-
-Route::get('/forecast', function () {
-    $lat = request('lat');
-    $lon = request('lon');
-
-    $apiKey = env('OPENWEATHER_API_KEY');
-    $forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric";
-
-
-    $response = Http::withOptions([
-        'verify' => false
-    ])->get($forecastUrl);
-
-    if ($response->successful()) {
-        return $response->json();
-    }
-
-    return response()->json(['error' => 'Failed to fetch weather forecast data'], 500);
-});
+Route::get('/admin/dashboard/stats', [AdminDashboardController::class, 'getStats'])
+    ->middleware('auth:api', 'admin');
 
 Route::prefix('tutorials')->group(function () {
-    Route::middleware('admin')->group(function () {
+    Route::middleware(['auth:api', 'admin'])->group(function () {
         Route::post('/', [TutorialController::class, 'store']);
         Route::put('/{id}', [TutorialController::class, 'update']);
         Route::delete('/{id}', [TutorialController::class, 'destroy']);
-        Route::get('/dashboard/stats', [AdminDashboardController::class, 'getStats']);
     });
 
     Route::get('/', [TutorialController::class, 'index']);
@@ -162,9 +131,6 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{id}', [PlantTimelineController::class, 'update']);
         Route::delete('/{id}', [PlantTimelineController::class, 'destroy']);
     });
-
-
-
 
 
     Route::get('chats/{receiver_id}', [ChatController::class, 'getMessages']);
