@@ -17,7 +17,7 @@ class PlantTimelineController extends Controller
         $page = $request->get('page', 1);
 
         $timelines = PlantTimeline::where('plant_id', $plantId)
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'asc')
             ->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json($timelines);
