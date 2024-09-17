@@ -131,7 +131,7 @@ class PlantTimelineController extends Controller
             }
         }
 
-        return response()->json(['userTimeline' => $timeline], 201);
+        return response()->json(['aiResponse' => $aiResponse, 'userTimeline' => $timeline], 201);
     }
 
     private function detectPlantDisease($file)
