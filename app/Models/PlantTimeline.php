@@ -13,6 +13,7 @@ class PlantTimeline extends Model
         'plant_id',
         'description',
         'image_path',
+        'source',
     ];
 
     // Relationship: a timeline belongs to a plant

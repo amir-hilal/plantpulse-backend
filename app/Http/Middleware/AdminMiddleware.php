@@ -17,15 +17,12 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (Auth::check()) {
-            \Log::info("admin user ID: " . Auth::user()->id);
 
-            // Check if the authenticated user has the 'admin' role
             if (Auth::user()->role === 'admin') {
                 return $next($request);
             }
         }
 
-        // User is not authenticated or not an admin, deny access
         return response()->json(['message' => 'Unauthorized'], 401);
     }
 }
