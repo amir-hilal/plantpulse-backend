@@ -13,55 +13,77 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthController extends Controller
 {
     public function register(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'first_name' => 'required|string|max:255',
-        'last_name' => 'required|string|max:255',
-        'username' => 'required|string|max:255|unique:users',
-        'email' => 'required|string|email|max:255|unique:users',
-        'password' => 'required|string|min:6|confirmed',
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 400);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+        $default_profile_picture_url = 'https://plantpulse.s3.me-central-1.amazonaws.com/profile/empty-profile.png';
+
+
+        $user = User::create([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'profile_picture_url' => $default_profile_picture_url
+        ]);
+
+        $token = JWTAuth::fromUser($user);
+
+        // Send email verification notification
+        $user->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'Please check your email to verify your account.', 'user' => $user, 'token' => $token], 201);
     }
 
-    $user = User::create([
-        'first_name' => $request->first_name,
-        'last_name' => $request->last_name,
-        'username' => $request->username,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-    ]);
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email_or_username' => 'required|string',
+            'password' => 'required|string',
+        ]);
 
-    // Send email verification notification
-    $user->sendEmailVerificationNotification();
+        $loginField = $request->input('email_or_username');
+        $loginType = filter_var($loginField, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-    return response()->json(['message' => 'Please check your email to verify your account.']);
-}
+        $credentials = [
+            $loginType => $loginField,
+            'password' => $request->input('password'),
+        ];
 
+        try {
+            if (!$token = JWTAuth::attempt($credentials)) {
+                return response()->json(['error' => 'Invalid credentials'], 400);
+            }
 
-public function login(Request $request)
-{
-    $credentials = $request->only('email', 'password');
+            $user = Auth::user();
 
-    try {
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Invalid credentials'], 400);
+            if ($request->header('App-Type') === 'admin' && $user->role !== 'admin') {
+                return response()->json(['error' => 'Unauthorized access. Admins only.'], 403);
+            }
+
+            return response()->json([
+                'token' => $token,
+                'user' => $user,
+            ], 200);
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Could not create token'], 500);
         }
-
-        $user = Auth::user();
-
-        // Check if the user's email is verified
-        if (!$user->hasVerifiedEmail()) {
-            return response()->json(['error' => 'Your email address is not verified.'], 403);
-        }
-
-    } catch (JWTException $e) {
-        return response()->json(['error' => 'Could not create token'], 500);
     }
 
-    return response()->json(compact('token'));
-}
+
+    public function me(Request $request)
+    {
+        return response()->json($request->user());
+    }
 
 }

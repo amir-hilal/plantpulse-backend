@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GoogleAuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
+    // ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class]);
+Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+    // ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class]);

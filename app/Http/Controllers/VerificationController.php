@@ -1,28 +1,36 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Support\Facades\Log;
 
 class VerificationController extends Controller
 {
-    // Method to handle email verification
-    public function verify(EmailVerificationRequest $request)
+    public function verify(Request $request, $id, $hash)
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email already verified.'], 200);
+        $user = User::find($id);
+        if (!$user) {
+            return view('verification-error', ['message' => 'User not found.']);
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
+        if ($user->hasVerifiedEmail()) {
+            return view('verification-success', ['message' => 'Email already verified.']);
         }
 
-        return response()->json(['message' => 'Email verified successfully.'], 200);
+        if (!hash_equals($hash, sha1($user->getEmailForVerification()))) {
+            return view('verification-error', ['message' => 'Invalid verification link.']);
+        }
+
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+            return view('verification-success', ['message' => 'Email verified successfully.']);
+        }
+
+        return view('verification-error', ['message' => 'Failed to verify email.']);
     }
 
-    // Method to resend the verification email
     public function resend(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {

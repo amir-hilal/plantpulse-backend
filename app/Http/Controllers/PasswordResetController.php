@@ -28,25 +28,24 @@ class PasswordResetController extends Controller
     // Method to reset the password
     public function reset(Request $request)
     {
-        // Validate the incoming request
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
+    $request->validate([
+        'token' => 'required',
+        'email' => 'required|email',
+        'password' => 'required|string|min:6|confirmed',
+    ]);
 
-        // Attempt to reset the password
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->password = Hash::make($password);
-                $user->save();
-            }
-        );
+    $status = Password::reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function ($user, $password) {
+            $user->password = Hash::make($password);
+            $user->save();
+        }
+    );
 
-        // Return appropriate response
-        return $status === Password::PASSWORD_RESET
-                    ? response()->json(['status' => __($status)])
-                    : response()->json(['email' => [__($status)]], 400);
+    if ($status === Password::PASSWORD_RESET) {
+        return response()->json(['message' => 'Password reset successfully.'], 200);
+    } else {
+        return response()->json(['error' => 'Unable to reset password. Please try again later.'], 500);
+    }
     }
 }
