@@ -13,7 +13,7 @@ class TutorialSeeder extends Seeder
     public function run(): void
     {
         Tutorial::factory(10)->create()->each(function ($tutorial) {
-            TutorialComment::factory(3)->create([
+            TutorialComment::factory(9)->create([
                 'tutorial_id' => $tutorial->id,
             ]);
         });

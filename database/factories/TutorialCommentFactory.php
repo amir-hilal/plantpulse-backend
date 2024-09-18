@@ -20,7 +20,7 @@ class TutorialCommentFactory extends Factory
         return [
             'tutorial_id' => Tutorial::factory(),
             'user_id' => User::factory(),
-            'comment' => $this->faker->sentence,
+            'comment_text' => $this->faker->sentence,
         ];
     }
 }
