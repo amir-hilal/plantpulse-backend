@@ -29,7 +29,6 @@ class CommentController extends Controller
             'comment_text' => $request->comment_text,
         ]);
 
-        // Load the user details for the comment
         $comment->load('user:id,first_name,last_name,profile_photo_url');
 
         return response()->json([
