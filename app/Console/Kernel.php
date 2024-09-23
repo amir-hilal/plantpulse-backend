@@ -12,11 +12,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('plants:schedule-watering')->weeklyOn(7, '23:59'); // Sunday at 11:59 PM
-         $schedule->call(function () {
-        \Log::info('The scheduler is working.');
-    	})->everyMinute();
-	}
+        $schedule->command('app:schedule-watering-for-plants')->weeklyOn(1, '00:01');
+    }
+
 
     /**
      * Register the commands for the application.

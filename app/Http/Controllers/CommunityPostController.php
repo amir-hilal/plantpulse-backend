@@ -82,7 +82,7 @@ class CommunityPostController extends Controller
     public function fetchAllPosts(Request $request)
     {
         $posts = CommunityPost::orderBy('created_at', 'desc')
-            ->paginate(5); // Fetch 5 posts at a time
+            ->paginate(5);
 
         return response()->json($posts);
     }
@@ -91,7 +91,6 @@ class CommunityPostController extends Controller
     {
         $userId = Auth::id();
 
-        // Get all friend ids where the logged-in user is either user_id or friend_id, and the status is 'accepted'
         $friendIds = Friend::where('status', 'accepted')
             ->where(function ($query) use ($userId) {
                 $query->where('user_id', $userId)
@@ -99,19 +98,15 @@ class CommunityPostController extends Controller
             })
             ->get()
             ->map(function ($friend) use ($userId) {
-                // Get the friend ID (the other user in the relationship)
                 return $friend->user_id === $userId ? $friend->friend_id : $friend->user_id;
             });
 
         $friendIds[] = $userId;
 
-        // Fetch posts created by friends, including the author's information
         $posts = CommunityPost::whereIn('user_id', $friendIds)
             ->with(['user:id,first_name,last_name,profile_photo_url,username']) // Include author's details
             ->orderBy('created_at', 'desc')
-            ->paginate(5); // Fetch 5 posts at a time for pagination
-
-        // Transform the post data to include the required fields for the frontend
+            ->paginate(5); 
         $posts->getCollection()->transform(function ($post) {
             return [
                 'id' => $post->id,

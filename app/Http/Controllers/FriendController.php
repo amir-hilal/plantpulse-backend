@@ -142,7 +142,6 @@ class FriendController extends Controller
             ->get();
 
         $formattedFriends = $friends->map(function ($friend) use ($userId) {
-            // If the logged-in user is user_id, return the friend_id details, otherwise return user_id details
             $friendData = $friend->user_id === $userId ? $friend->friend : $friend->user;
 
             return [

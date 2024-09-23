@@ -257,10 +257,10 @@ class UserController extends Controller
 
     private function uploadToS3($file, $folder = 'profile')
     {
-        $imageName = time() . '.' . $file->extension(); // Generate a unique name for the image
-        $filePath = $file->getPathname(); // Get the temporary file path
+        $imageName = time() . '.' . $file->extension();
+        $filePath = $file->getPathname();
         $bucketName = env('AWS_BUCKET');
-        $key = $folder . 'profile/' . $imageName; // Create the key (folder and filename)
+        $key = $folder . 'profile/' . $imageName;
 
         // Initialize the S3 client
         $s3 = new S3Client([
@@ -271,7 +271,7 @@ class UserController extends Controller
                 'secret' => env('AWS_SECRET_ACCESS_KEY'),
             ],
             'http' => [
-                'verify' => false, // Disable SSL verification, adjust if needed
+                'verify' => false,
             ],
         ]);
 
@@ -281,7 +281,7 @@ class UserController extends Controller
                 'Bucket' => $bucketName,
                 'Key' => $key,
                 'SourceFile' => $filePath,
-                'ACL' => 'public-read', // Make the file publicly accessible
+                'ACL' => 'public-read', 
             ]);
 
             // Return the public URL of the uploaded image

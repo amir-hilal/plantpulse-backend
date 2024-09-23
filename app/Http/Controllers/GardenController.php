@@ -9,14 +9,12 @@ use Aws\Exception\AwsException;
 
 class GardenController extends Controller
 {
-    // Get all gardens for the authenticated user
     public function index()
     {
         $gardens = Garden::where('user_id', Auth::id())->get();
         return response()->json($gardens);
     }
 
-    // Create a new garden with image upload to S3
     public function store(Request $request)
     {
         $request->validate([
@@ -41,14 +39,12 @@ class GardenController extends Controller
         return response()->json($garden, 201);
     }
 
-    // Show a specific garden
     public function show($id)
     {
         $garden = Garden::where('user_id', Auth::id())->findOrFail($id);
         return response()->json($garden);
     }
 
-    // Update a garden with image upload to S3
     public function update(Request $request, $id)
     {
         $request->validate([

@@ -10,7 +10,6 @@ use GuzzleHttp\Client;
 
 class TutorialController extends Controller
 {
-    // Fetch all tutorials with YouTube data (paginated)
     public function index(Request $request)
     {
         $tutorials = Tutorial::paginate(10);
@@ -18,12 +17,10 @@ class TutorialController extends Controller
         return response()->json($tutorials);
     }
 
-    // Search for tutorials with a query term and return paginated response
     public function search(Request $request)
     {
-        $query = $request->input('q'); // Get the search query
+        $query = $request->input('q');
 
-        // Filter tutorials by title or description
         $tutorials = Tutorial::where('title', 'LIKE', '%' . $query . '%')
             ->orWhere('description', 'LIKE', '%' . $query . '%')
             ->orWhere('tags', 'LIKE', '%' . $query . '%')
@@ -37,7 +34,7 @@ class TutorialController extends Controller
     public function show($id)
     {
         $tutorial = Tutorial::findOrFail($id);
-        $this->fetchYouTubeData(collect([$tutorial])); // Passing as collection to reuse the method
+        $this->fetchYouTubeData(collect([$tutorial]));
         return response()->json($tutorial);
     }
 
@@ -138,7 +135,6 @@ class TutorialController extends Controller
             $tutorial->thumbnail_url = $videoData->snippet->thumbnails->default->url;
         }
 
-        // Set views and duration
         $tutorial->views = $videoData->statistics->viewCount;
         $tutorial->duration = $this->convertISO8601Duration($videoData->contentDetails->duration);
     }

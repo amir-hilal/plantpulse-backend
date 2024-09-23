@@ -11,7 +11,6 @@ use Carbon\Carbon;
 
 class PlantController extends Controller
 {
-    // Get all plants for a specific garden
     public function index($gardenId)
     {
         $plants = Plant::where('garden_id', $gardenId)->get();
@@ -27,7 +26,6 @@ class PlantController extends Controller
     }
 
 
-    // Store a new plant
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -45,7 +43,6 @@ class PlantController extends Controller
             'watering_frequency' => 'required|integer|min:1|max:7',
         ]);
 
-        // Calculate planted date based on the provided age (in days)
         $plantedDate = Carbon::now()->subDays($validated['age']);
         unset($validated['age']);
 
@@ -54,13 +51,11 @@ class PlantController extends Controller
             $imagePath = $this->uploadImageToS3($request->file('file'));
         }
 
-        // Store plant with planted_date
         $plant = Plant::create(array_merge($validated, [
             'planted_date' => $plantedDate,
             'image_url' => $imagePath,
         ]));
 
-        // Create a timeline entry
         PlantTimeline::create([
             'plant_id' => $plant->id,
             'description' => $request->description,
@@ -69,7 +64,6 @@ class PlantController extends Controller
 
         $plant->scheduleWateringEvents();
 
-        // Update next_time_to_water to the date of the first scheduled watering event
         $nextWateringEvent = $plant->wateringEvents()->orderBy('scheduled_date', 'asc')->first();
         if ($nextWateringEvent) {
             $plant->update([

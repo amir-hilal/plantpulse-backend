@@ -24,13 +24,11 @@ class WateringEventController extends Controller
             return response()->json(['message' => 'You can only mark the event as done on the scheduled date'], 403);
         }
 
-        // Update the event status
         $event->update([
             'is_done' => !$event->is_done,
             'completed_at' => !$event->is_done ? now() : null,
         ]);
 
-        // Set the plant name for the response and unset the plant relationship
         $event->plant_name = $event->plant->name;
         unset($event->plant);
 
@@ -45,7 +43,6 @@ class WateringEventController extends Controller
     private function updatePlantWateringStatus($plant, $event)
     {
         if ($event->is_done) {
-            // Mark as done, update next_time_to_water and last_watered
             $plant->update([
                 'last_watered' => $event->completed_at,
                 'next_time_to_water' => $plant->wateringEvents()
@@ -54,7 +51,6 @@ class WateringEventController extends Controller
                     ->first()->scheduled_date
             ]);
         } else {
-            // Undo, revert last_watered and next_time_to_water
             $previousEvent = $plant->wateringEvents()
                 ->where('is_done', true)
                 ->orderBy('completed_at', 'desc')
@@ -75,7 +71,6 @@ class WateringEventController extends Controller
     {
         $user = $request->user();
 
-        // Fetch all watering events for plants in user's gardens along with plant names
         $wateringEvents = $user->gardens()
             ->with([
                 'plants.wateringEvents' => function ($query) {

@@ -39,7 +39,6 @@ class AuthController extends Controller
 
         $token = JWTAuth::fromUser($user);
 
-        // Send email verification notification
         $user->sendEmailVerificationNotification();
 
         return response()->json(['message' => 'Please check your email to verify your account.', 'user' => $user, 'token' => $token], 201);

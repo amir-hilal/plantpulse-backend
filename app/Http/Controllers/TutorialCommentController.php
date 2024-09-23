@@ -8,17 +8,15 @@ use Illuminate\Support\Facades\Auth;
 
 class TutorialCommentController extends Controller
 {
-    // Fetch comments for a specific tutorial with pagination
     public function index($tutorialId)
     {
         $comments = TutorialComment::with('user')
             ->where('tutorial_id', $tutorialId)
-            ->paginate(10); // Adjust pagination as needed
+            ->paginate(10);
 
         return response()->json($comments, 200);
     }
 
-    // Store a new comment for a specific tutorial
     public function store(Request $request, $tutorialId)
     {
         $data = $request->validate([
@@ -26,7 +24,7 @@ class TutorialCommentController extends Controller
         ]);
 
         $data['tutorial_id'] = $tutorialId;
-        $data['user_id'] = Auth::id();  // Assuming user is authenticated
+        $data['user_id'] = Auth::id();  
 
         $comment = TutorialComment::create($data);
         $comment->load('user:id,first_name,last_name,profile_photo_url');

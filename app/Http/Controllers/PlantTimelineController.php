@@ -121,11 +121,9 @@ class PlantTimelineController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            \Log::info('Uploading image to S3.');
             $imagePath = $this->uploadImageToS3($request->file('image'));
             if ($imagePath) {
                 $timeline->update(['image_path' => $imagePath]);
-                \Log::info('Image uploaded to S3 and timeline updated.', ['image_path' => $imagePath]);
             } else {
                 \Log::error('Image upload to S3 failed.');
             }
