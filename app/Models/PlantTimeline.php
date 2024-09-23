@@ -16,7 +16,6 @@ class PlantTimeline extends Model
         'source',
     ];
 
-    // Relationship: a timeline belongs to a plant
     public function plant()
     {
         return $this->belongsTo(Plant::class);

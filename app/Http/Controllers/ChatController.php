@@ -12,17 +12,16 @@ class ChatController extends Controller
 {
     public function getMessages($receiver_id, Request $request)
     {
-        $sender_id = Auth::id(); // Get the logged-in user (sender)
-        $perPage = $request->query('per_page', 10); // Customize the number of messages per page (default 10)
+        $sender_id = Auth::id();
+        $perPage = $request->query('per_page', 10);
 
-        // Retrieve paginated chat messages between the two users
         $messages = Message::where(function ($query) use ($sender_id, $receiver_id) {
             $query->where('sender_id', $sender_id)->where('receiver_id', $receiver_id);
         })
             ->orWhere(function ($query) use ($sender_id, $receiver_id) {
                 $query->where('sender_id', $receiver_id)->where('receiver_id', $sender_id);
             })
-            ->orderBy('created_at', 'desc') // Order by latest messages first
+            ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
         return response()->json($messages);
@@ -40,7 +39,6 @@ class ChatController extends Controller
         return response()->json($conversations);
     }
 
-    // Send a message
     public function sendMessage(Request $request)
     {
         $request->validate([
