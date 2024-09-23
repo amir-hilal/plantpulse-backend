@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\PlantTimeline;
 use Carbon\Carbon;
 use App\Notifications\WateringReminderNotification;
-
+use Illuminate\Support\Facades\Log;
 class Plant extends Model
 {
     use HasFactory;
@@ -82,36 +82,42 @@ class Plant extends Model
 
     public function scheduleWateringEvents()
     {
+	Log::info('Starting watering event scheduling for plant ID: ' . $this->id);
         $wateringFrequency = $this->watering_frequency;
         $nextWateringDates = [];
 
         $daysBetweenWaterings = floor(7 / $wateringFrequency);
+    	Log::info('Days between waterings: ' . $daysBetweenWaterings);
         $startDate = Carbon::now()->startOfWeek(); // Start from the current week
-
+    	Log::info('Start date for watering scheduling: ' . $startDate);
         // Generate the next watering dates based on the frequency
         for ($i = 0; $i < $wateringFrequency; $i++) {
             $nextDate = $startDate->copy()->addDays($i * $daysBetweenWaterings);
-
+	    Log::info('Generated next watering date: ' . $nextDate);
             // Skip past dates but allow future dates in the current week
             if ($nextDate->isPast()) {
+            	Log::info('Skipping past date: ' . $nextDate);
                 continue;
             }
-
+        	Log::info('Next date added: ' . $nextDate);
             $nextWateringDates[] = $nextDate;
         }
 
         // Loop through and create watering events for the plant
         foreach ($nextWateringDates as $date) {
-            $existingEvent = WateringEvent::where('plant_id', $this->id)
+            	Log::info('Checking for existing watering event on date: ' . $date);
+		$existingEvent = WateringEvent::where('plant_id', $this->id)
                 ->whereDate('scheduled_date', $date)
                 ->first();
 
             if (!$existingEvent) {
+		Log::info('No existing watering event found for date: ' . $date . ' - creating new event.');
                 WateringEvent::create([
                     'plant_id' => $this->id,
                     'scheduled_date' => $date,
                     'is_done' => false,
                 ]);
+            Log::info('Watering event created for date: ' . $date);
             }
         }
     }
