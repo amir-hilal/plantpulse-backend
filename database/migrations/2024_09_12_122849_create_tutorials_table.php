@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->string('video_url');
-            $table->text('tags')->nullable();  // Tags as JSON array
+            $table->text('tags')->nullable();  
             $table->timestamps();
         });
     }
