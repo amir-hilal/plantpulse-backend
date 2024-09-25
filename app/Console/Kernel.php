@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:schedule-watering-for-plants')->weeklyOn(1, '00:01');
     }
 
+
     /**
      * Register the commands for the application.
      */
