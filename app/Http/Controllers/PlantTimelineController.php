@@ -25,18 +25,13 @@ class PlantTimelineController extends Controller
 
     public function store(Request $request)
     {
-        \Log::info('Store method called.');
-
         $validated = $request->validate([
             'plant_id' => 'required|exists:plants,id',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
         ]);
 
-        \Log::info('Validation passed.', ['plant_id' => $validated['plant_id']]);
-
         $plant = Plant::find($validated['plant_id']);
-        \Log::info('Fetched plant info.', ['plant' => $plant]);
 
         $previousTimelines = PlantTimeline::where('plant_id', $validated['plant_id'])
             ->orderBy('created_at', 'desc')
@@ -44,23 +39,13 @@ class PlantTimelineController extends Controller
             ->pluck('description')
             ->toArray();
 
-        \Log::info('Fetched previous 5 timeline entries.', ['count' => count($previousTimelines)]);
-
         $weather = $this->fetchCurrentWeather($request);
-        \Log::info('Fetched current weather.', ['weather' => $weather]);
 
         $weeklyWateringSchedule = $this->getPlantWeekWateringSchedule($plant);
-        \Log::info('Fetched weekly watering schedule.', ['watering_schedule' => $weeklyWateringSchedule]);
 
         $diseasePrediction = null;
         if ($request->hasFile('image')) {
-            \Log::info('Image file detected, sending to disease detection.');
             $diseasePrediction = $this->detectPlantDisease($request->file('image'));
-            if ($diseasePrediction) {
-                \Log::info('Disease prediction received.', $diseasePrediction);
-            } else {
-                \Log::warning('Disease prediction failed.');
-            }
         }
 
         $aiMessages = [
@@ -92,15 +77,7 @@ class PlantTimelineController extends Controller
         $prompt .= "Currently, we only trained the model on tomato, potato, and pepper bell leaves, so if the category or the name ";
         $prompt .= "of the plant does not relate the leaf's name, just focus on the rest of the info, because you know everything about all plants, the prediction object is just a little help for you for better response, and give a helpfull message even if it doesn't make sense to you, and start your resonse with something helpful about my plant type and it's watering events and stuff you know about the plant, give tips and ticks";
 
-        \Log::info('Sending AI request to assistant.', ['messages' => $aiMessages]);
-
         $aiResponse = $this->getAssistantResponse($aiMessages, $prompt);
-
-        if ($aiResponse) {
-            \Log::info('AI response received.', ['aiResponse' => $aiResponse]);
-        } else {
-            \Log::warning('No response from AI service.');
-        }
 
         $timeline = PlantTimeline::create([
             'plant_id' => $validated['plant_id'],
@@ -109,7 +86,6 @@ class PlantTimelineController extends Controller
             'source' => 'user',
         ]);
 
-        \Log::info('User timeline created.', ['timeline_id' => $timeline->id]);
         sleep(1);
         if ($aiResponse) {
             PlantTimeline::create([
@@ -117,7 +93,6 @@ class PlantTimelineController extends Controller
                 'description' => $aiResponse,
                 'source' => 'ai',
             ]);
-            \Log::info('AI timeline entry created.');
         }
 
         if ($request->hasFile('image')) {
