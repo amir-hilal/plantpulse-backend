@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->string('image_url')->nullable();
             $table->integer('watering_frequency');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

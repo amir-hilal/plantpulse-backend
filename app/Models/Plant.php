@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\PlantTimeline;
 use Carbon\Carbon;
 use App\Notifications\WateringReminderNotification;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Log;
+
 class Plant extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $fillable = [
         'garden_id',
         'name',
