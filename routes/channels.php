@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Broadcast;
-
+use App\Models\Conversation;
 /*
 |--------------------------------------------------------------------------
 | Broadcast Channels
@@ -17,6 +17,6 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
-Broadcast::channel('chat.{receiver_id}', function ($user, $receiver_id) {
-    return (int) $user->id === (int) $receiver_id || $user->id; // Allow users to listen to their own chat
+Broadcast::channel('chat.{receiverId}', function ($user, $receiverId) {
+    return (int) $user->id === (int) $receiverId || Conversation::between($user->id, $receiverId);
 });
