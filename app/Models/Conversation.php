@@ -43,6 +43,18 @@ class Conversation extends Model
         return $conversation;
     }
 
+    public static function between($userOneId, $userTwoId)
+    {
+        // Find a conversation where userOneId and userTwoId are part of the conversation
+        return self::where(function ($query) use ($userOneId, $userTwoId) {
+            $query->where('user_one_id', $userOneId)
+                ->where('user_two_id', $userTwoId);
+        })->orWhere(function ($query) use ($userOneId, $userTwoId) {
+            $query->where('user_one_id', $userTwoId)
+                ->where('user_two_id', $userOneId);
+        })->first();
+    }
+
     public function messages()
     {
         return $this->hasMany(Message::class);

@@ -31,10 +31,31 @@ class ChatController extends Controller
     {
         $userId = Auth::id();
 
+        // Fetch conversations where the user is involved
         $conversations = Conversation::where('user_one_id', $userId)
             ->orWhere('user_two_id', $userId)
-            ->with('lastMessage')
+            ->with(['lastMessage', 'userOne:id,first_name,last_name,username,email,profile_photo_url', 'userTwo:id,first_name,last_name,username,email,profile_photo_url'])
             ->get();
+
+        // Map the conversations to include the relevant user information
+        $conversations = $conversations->map(function ($conversation) use ($userId) {
+            $receiver = $conversation->user_one_id === $userId
+                ? $conversation->userTwo
+                : $conversation->userOne;
+
+            return [
+                'id' => $conversation->id,
+                'last_message' => $conversation->lastMessage,
+                'receiver' => [
+                    'id' => $receiver->id,
+                    'first_name' => $receiver->first_name,
+                    'last_name' => $receiver->last_name,
+                    'username' => $receiver->username,
+                    'email' => $receiver->email,
+                    'profile_photo_url' => $receiver->profile_photo_url,
+                ]
+            ];
+        });
 
         return response()->json($conversations);
     }
